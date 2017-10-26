@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <com.dzg.gank.ui.activity.MyNestedScrollView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="320dp">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="320dp"
+                    android:background="@mipmap/stackblur_default"
+                    android:scaleType="fitXY" />
+
+                <LinearLayout
+                    android:padding="10dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_marginTop="5dp"
+                        android:id="@+id/title"
+                        android:layout_width="match_parent"
+                        android:layout_height="35dp"
+                        android:gravity="center"
+                        android:text="标题"
+                        android:textColor="@color/colorWhite"
+                        android:textSize="20sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp">
+
+                        <ImageView
+                            android:id="@+id/movie"
+                            android:layout_width="160dp"
+                            android:layout_height="280dp" />
+
+                        <TextView
+                            android:layout_marginTop="50dp"
+                            android:textColor="@color/colorWhite"
+                            android:layout_marginLeft="6dp"
+                            android:id="@+id/ringht_content"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:text="文字"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </RelativeLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="22dp"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="4dp"
+                    android:layout_height="22dp"
+                    android:background="@color/colorAccent"
+                    android:layout_marginLeft="4dp"
+                    android:layout_marginRight="4dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="22dp"
+                    android:layout_marginLeft="4dp"
+                    android:layout_marginRight="4dp"
+                    android:gravity="center_vertical"
+                    android:text="译名"
+                    android:textColor="@color/black"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_marginTop="5dp"
+                android:padding="8dp"
+                android:id="@+id/translation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#8F000000"
+                android:textSize="15sp" />
+            <LinearLayout
+                android:layout_marginTop="3dp"
+                android:layout_width="match_parent"
+                android:layout_height="22dp"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="4dp"
+                    android:layout_height="22dp"
+                    android:background="@color/colorAccent"
+                    android:layout_marginLeft="4dp"
+                    android:layout_marginRight="4dp" />
+
+                <TextView
+                    android:gravity="center_vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="22dp"
+                    android:layout_marginLeft="4dp"
+                    android:layout_marginRight="4dp"
+                    android:text="简介"
+                    android:textColor="@color/black"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <TextView
+                android:lineSpacingMultiplier="1.2"
+                android:layout_marginTop="5dp"
+                android:padding="8dp"
+                android:id="@+id/summary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#8F000000"
+                android:textSize="15sp" />
+            <LinearLayout
+                android:layout_marginTop="3dp"
+                android:layout_width="match_parent"
+                android:layout_height="22dp"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="4dp"
+                    android:layout_height="22dp"
+                    android:background="@color/colorAccent"
+                    android:layout_marginLeft="4dp"
+                    android:layout_marginRight="4dp" />
+
+                <TextView
+                    android:gravity="center_vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="22dp"
+                    android:layout_marginLeft="4dp"
+                    android:layout_marginRight="4dp"
+                    android:text="导演&amp;演员"
+                    android:textColor="@color/black"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <TextView
+                android:lineSpacingMultiplier="1.1"
+                android:padding="8dp"
+                android:layout_marginTop="5dp"
+                android:id="@+id/direction_actors"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#8F000000"
+                android:textSize="14sp" />
+            <LinearLayout
+                android:layout_marginTop="3dp"
+                android:layout_width="match_parent"
+                android:layout_height="22dp"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_marginLeft="4dp"
+                    android:layout_marginRight="4dp"
+                    android:layout_width="4dp"
+                    android:layout_height="22dp"
+                    android:background="@color/colorAccent" />
+
+                <TextView
+                    android:gravity="center_vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="22dp"
+                    android:layout_marginRight="4dp"
+                    android:text="下载链接"
+                    android:textColor="@color/black"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <TextView
+                android:padding="8dp"
+                android:layout_marginTop="5dp"
+                android:gravity="center"
+                android:id="@+id/download"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="#8F000000"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </com.dzg.gank.ui.activity.MyNestedScrollView>

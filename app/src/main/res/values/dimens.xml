@@ -1,0 +1,25 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="recycler_item_margin">10dp</dimen>
+    <dimen name="recycler_item_margin_top">1dp</dimen>
+    <dimen name="recycler_item_margin_bottom">2dp</dimen>
+    <dimen name="nav_drawer_top_padding">0dp</dimen>
+    <dimen name="nav_drawer_width">264dp</dimen>
+    <dimen name="nav_drawer_header_height">148dp</dimen>
+    <dimen name="toolbar_elevation">4dp</dimen>
+    <dimen name="floating_height">650dp</dimen>
+    <dimen name="floating_width">500dp</dimen>
+    <dimen name="base_header_activity_slide_more">45dp</dimen>
+    <dimen name="nav_bar_height">56dp</dimen>
+    <dimen name="zero_horizontal_margin_big_activity">0dp</dimen>
+    <dimen name="text_margin_small">8dp</dimen>
+    <dimen name="card_margin_vertical_big_activity">4dp</dimen>
+    <dimen name="card_margin_horizontal_big_activity">8dp</dimen>
+    <dimen name="text_margin">10dp</dimen>
+    <dimen name="text_margin_very_small">4dp</dimen>
+    <dimen name="big_activity_text_margin">16dp</dimen>
+    <dimen name="main_card_margin_horizontal_big_activity">8dp</dimen>
+    <dimen name="card_margin_horizontal">8dp</dimen>
+    <dimen name="card_margin_vertical">8dp</dimen>
+    <dimen name="share_view_round_margin">16dp</dimen>
+</resources>

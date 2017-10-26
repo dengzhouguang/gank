@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <com.dzg.gank.ui.activity.MyNestedScrollView
+        android:id="@+id/nestedScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorTransparent">
+        <LinearLayout
+            android:background="@color/colorTransparent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+            <RelativeLayout
+                android:background="@color/colorTransparent"
+                android:layout_width="match_parent"
+                android:layout_height="340dp"
+                >
+                <ImageView
+                    android:id="@+id/img_item_bg"
+                    android:layout_width="match_parent"
+                    android:layout_height="340dp"
+                    android:scaleType="fitXY" />
+
+                <ImageView
+                    android:id="@+id/imageview"
+                    android:layout_width="150dp"
+                    android:layout_height="200dp"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginTop="90dp"
+                    android:background="#af000000"
+                    android:scaleType="centerCrop"
+                    android:transitionName="@string/transition_movie_img" />
+
+                <LinearLayout
+                    android:gravity="center"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginTop="90dp"
+                    android:layout_toRightOf="@id/imageview"
+                    android:orientation="vertical"
+                    android:padding="5dp">
+
+                    <TextView
+                        android:id="@+id/title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/movie_name"
+                        android:textColor="@color/colorWhite"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/rate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="5dp"
+                        android:text="@string/star"
+                        android:textColor="@color/colorWhite"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/direction"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="5dp"
+                        android:text="@string/direction"
+                        android:textColor="@color/colorWhite"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/genres"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="5dp"
+                        android:text="@string/genres"
+                        android:textColor="@color/colorWhite"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/year"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="5dp"
+                        android:text="@string/year"
+                        android:textColor="@color/colorWhite"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/cast"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="5dp"
+                        android:text="@string/cast"
+                        android:textColor="@color/colorWhite"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+            </RelativeLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:text="@string/story"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/summary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingMultiplier="1.2"
+                android:padding="5dp"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:text="导演&amp;演员"
+                android:textSize="16sp" />
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recyclerview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:padding="5dp" />
+        </LinearLayout>
+    </com.dzg.gank.ui.activity.MyNestedScrollView>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorTransparent">
+        <ImageView
+            android:id="@+id/titlebar_bg"
+            android:layout_width="match_parent"
+            android:layout_height="310dp"
+            android:scaleType="fitXY" />
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/colorTransparent"
+            app:contentInsetStart="0.0dp"
+            app:layout_collapseMode="pin"
+            app:layout_scrollFlags="enterAlways|scroll"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:theme="@style/ToolbarStyle" />
+    </RelativeLayout>
+</FrameLayout>
