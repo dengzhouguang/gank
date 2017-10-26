@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,16 +17,13 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.dzg.gank.App;
 import com.dzg.gank.ItemDecoration.DividerGridItemDecoration;
 import com.dzg.gank.R;
 import com.dzg.gank.adapter.MovieAdapter;
 import com.dzg.gank.listener.OnItemClickListener;
 import com.dzg.gank.module.DianYingBean;
 import com.dzg.gank.ui.activity.DYDetailActivity;
-import com.dzg.gank.util.ACache;
 import com.dzg.gank.util.CheckNetwork;
-import com.dzg.gank.util.ListUtil;
 import com.dzg.gank.util.ToastUtil;
 import com.jcodecraeer.xrecyclerview.XRecyclerView;
 
@@ -41,15 +39,14 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 public class MovieFragmen extends Fragment {
-    private boolean isFirst=true;
     private boolean isLoading=false;
-    private MovieAdapter adapter;
-    private ArrayList<String> imgList=new ArrayList<>();
-    private Animation rotate;
-    private int page=0;
+    private MovieAdapter mAdapter;
+    private Animation mRotate;
+    private int mPage =0;
     private static String BASE_URL="http://www.ygdy8.net/html/gndy/dyzz/list_23_" ;
     private static String Host="http://www.ygdy8.net";
-    private ACache cache=ACache.get(App.getInstance());
+
+
     @BindView(R.id.llwaiting)
     LinearLayout mLlwaitionLl;
     @BindView(R.id.jiazai)
@@ -65,7 +62,7 @@ public class MovieFragmen extends Fragment {
         ButterKnife.bind(this,view);
         init();
         if (checkNetWork())
-        getDianYingByRxJava(++page);
+        getDianYing(++mPage);
         return view;
     }
     public boolean checkNetWork(){
@@ -73,13 +70,7 @@ public class MovieFragmen extends Fragment {
             mProgressIv.setVisibility(View.GONE);
             mProgressIv.clearAnimation();
             ToastUtil.showToast("当前网络不可用，将加载上次使用的数据！");
-            ArrayList<List<DianYingBean>>list= (ArrayList<List<DianYingBean>>) cache.getAsObject("dianyinglist");
-            if (list!=null) {
-                adapter.addAll(list.get(0));
-                adapter.notifyDataSetChanged();
-                mLlwaitionLl.setVisibility(View.GONE);
-            }else {
-                mJiazaiTv.setText("当前网络不可用，请检查网络！！！\r\n点击界面刷新.......");
+            mJiazaiTv.setText("当前网络不可用，请检查网络！！！\r\n点击界面刷新.......");
             mJiazaiTv.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -90,19 +81,19 @@ public class MovieFragmen extends Fragment {
                     }
                     mJiazaiTv.setText("正在加载.......");
                     mProgressIv.setVisibility(View.VISIBLE);
-                    mProgressIv.startAnimation(rotate);
-                    getDianYingByRxJava(++page);
+                    mProgressIv.startAnimation(mRotate);
+                    getDianYing(++mPage);
                 }
-            });}
+            });
             return false;
         }
         return true;
     }
     private void init() {
-        adapter = new MovieAdapter(getActivity());
-        rotate= AnimationUtils.loadAnimation(getActivity(),R.anim.rotate);
-        rotate.setInterpolator(new LinearInterpolator());
-        mProgressIv.startAnimation(rotate);
+        mAdapter = new MovieAdapter(getActivity());
+        mRotate = AnimationUtils.loadAnimation(getActivity(),R.anim.rotate);
+        mRotate.setInterpolator(new LinearInterpolator());
+        mProgressIv.startAnimation(mRotate);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
         mRecyclerView.setNestedScrollingEnabled(false);
@@ -116,10 +107,10 @@ public class MovieFragmen extends Fragment {
 
             @Override
             public void onLoadMore() {
-                getDianYingByRxJava(++page);
+                getDianYing(++mPage);
             }
         });
-        adapter.setOnItemClickListener(new OnItemClickListener<DianYingBean>() {
+        mAdapter.setOnItemClickListener(new OnItemClickListener<DianYingBean>() {
             @Override
             public void onClick(DianYingBean subjectsBean, int position) {
                 Bundle bundle=new Bundle();
@@ -129,12 +120,11 @@ public class MovieFragmen extends Fragment {
                 startActivity(intent);
             }
         });
-        mRecyclerView.setAdapter(adapter);
+        mRecyclerView.setAdapter(mAdapter);
     }
-    public boolean getDianYingByRxJava(final int page) {
+    public boolean getDianYing(final int page) {
         if (isLoading) return false;
         isLoading=true;
-
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -145,6 +135,7 @@ public class MovieFragmen extends Fragment {
                     e.printStackTrace();
                 }
                 if (doc!=null) {
+                    Log.e("error", doc.text() );
                     Elements elements = doc.body().select("a.ulink");
                     List<DianYingBean> list=new ArrayList<>();
                     for (Element element:elements){
@@ -215,18 +206,11 @@ public class MovieFragmen extends Fragment {
                             e.printStackTrace();
                         }
                     }
-                    ArrayList<List<DianYingBean>> lists=new ArrayList<List<DianYingBean>>();
-                    lists.add(list);
-                    adapter.addAll(list);
-                    List<DianYingBean> data=adapter.getList();
-                    data= ListUtil.removeDuplicate(data);
-                    lists.add(data);
-                    cache.put("dianyinglist",lists,259200);
+                    mAdapter.addAll(list);
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            adapter.notifyDataSetChanged();
-                            rotate.cancel();
+                            mLlwaitionLl.clearAnimation();
                             mLlwaitionLl.setVisibility(View.GONE);
                             mRecyclerView.refreshComplete();
                             isLoading=false;

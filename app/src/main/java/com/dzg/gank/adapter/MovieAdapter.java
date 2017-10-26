@@ -26,12 +26,26 @@ public class MovieAdapter extends RecyclerView.Adapter {
     private Context mContext;
     private OnItemClickListener<DianYingBean> onItemClickListener;
     private List<DianYingBean> mList;
+    private DianYingBean mTempBean=null;
     public MovieAdapter(Context context) {
         mContext=context;
         mList=new ArrayList<>();
     }
     public void addAll(List<DianYingBean> list){
+        if (list.size()%2==0) {
+            if (mTempBean!=null){
+               mList.add(mTempBean);
+               mTempBean=list.remove(list.size()-1);
+            }
+        }else {
+            if (mTempBean!=null){
+                mList.add(mTempBean);
+            }else {
+                mTempBean=list.remove(list.size()-1);
+            }
+        }
         mList.addAll(list);
+//        ListUtil.removeDuplicate(list)
     }
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {

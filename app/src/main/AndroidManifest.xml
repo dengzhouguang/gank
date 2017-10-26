@@ -22,6 +22,5 @@
         <activity android:name=".ui.activity.AboutActivity"/>
         <activity android:name=".ui.activity.DouBanDetailActivity"/>
         <activity android:name=".ui.activity.DYDetailActivity"/>
-        <activity android:name=".ui.activity.BottomNavigationActivity"/>
     </application>
 </manifest>

@@ -75,12 +75,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 navFragment=new BaiQiuFragment();
                 break;
             case R.id.nav_item_settings:
-                Intent intent=new Intent();
-                intent.setClass(MainActivity.this,BottomNavigationActivity.class);
-                startActivity(intent);
+                ToastUtil.showToast("设置");
                 return true;
             case R.id.nav_item_support:
-                ToastUtil.showToast("6");
+                ToastUtil.showToast("支持");
                 return true;
             case R.id.nav_item_about:
                 startActivity(new Intent().setClass(MainActivity.this,AboutActivity.class));
