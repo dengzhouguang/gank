@@ -47,7 +47,8 @@
     <color name="green_theme_pink">#AF3F3F</color>
     <color name="colorPageBg">#f2f4f5</color>
     <color name="colorTransparent">#00000000</color>
-    <!-- Google Apps Color -->
+    <color name="progressNormalColor">#1A000000</color>
+    <color name="progressReachColor">#E5ffffff</color>
     <color name="app_blue">#4285f4</color>
     <color name="app_blue_dark">#3367d6</color>
     <color name="app_green">#0f9d58</color>
@@ -55,4 +56,5 @@
     <color name="app_yellow">#f4b400</color>
     <color name="app_yellow_dark">#f09300</color>
     <color name="app_red">#db4437</color>
+    <color name="placeholder_color">#1A000000</color>
 </resources>

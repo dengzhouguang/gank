@@ -3,7 +3,6 @@ package com.dzg.gank.adapter;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -109,7 +108,6 @@ public class SearchResultAdapter extends RecyclerView.Adapter {
                         titleTv.getViewTreeObserver().removeOnPreDrawListener(this);
                         int height = titleTv.getMeasuredHeight();
                         int width = titleTv.getMeasuredWidth();
-                        Log.e("height and width",height+" : "+width);
                         imgIv.setLayoutParams(new LinearLayout.LayoutParams((int) CommonUtils.getDimens(R.dimen.nav_bar_height),height));
                         return true;
                     }

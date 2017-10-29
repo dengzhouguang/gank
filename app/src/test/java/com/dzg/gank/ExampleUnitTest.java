@@ -1,6 +1,7 @@
 package com.dzg.gank;
 
 import com.dzg.gank.api.BaiQiuService;
+import com.dzg.gank.module.DianYingBean;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -10,6 +11,9 @@ import org.junit.Test;
 
 import java.io.IOException;
 
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
@@ -81,8 +85,11 @@ public class ExampleUnitTest {
     }
     @Test
     public void test() throws Exception{
-        Document document=Jsoup.connect("https://www.qiushibaike.com"+"/article/119682055").get();
-        Elements elements=document.select("div.content");
-        System.out.println(elements.text());
+        Observable<DianYingBean> dianYingBeanObservable = Observable.create(new ObservableOnSubscribe<DianYingBean>() {
+            @Override
+            public void subscribe(ObservableEmitter<DianYingBean> e) throws Exception {
+
+            }
+        });
     }
 }

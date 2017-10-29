@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.jakewharton.butterknife'
 android {
     compileSdkVersion 26
     buildToolsVersion "26.0.2"
@@ -16,6 +15,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
@@ -42,8 +45,7 @@ dependencies {
     compile 'com.github.bumptech.glide:glide:4.2.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.2.0'
     compile 'com.afollestad.material-dialogs:commons:0.9.0.2'
-    //    compile project(path: ':xrecyclerview')
-    //    compile project(path: ':zoomlibrary')
+    compile 'com.sunfusheng:glideimageview:1.2.0'
     compile 'com.android.support:cardview-v7:26.+'
     compile 'com.github.chrisbanes.photoview:library:1.2.4'
     compile 'org.jsoup:jsoup:1.10.3'
