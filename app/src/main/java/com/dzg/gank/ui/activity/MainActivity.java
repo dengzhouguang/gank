@@ -25,7 +25,7 @@ import com.dzg.gank.util.ToastUtil;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     @BindView(R.id.content_frame)
     FrameLayout mFrameLayout;
     @BindView(R.id.navigation_view)
@@ -34,7 +34,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     DrawerLayout mDrawer;
     @BindView(R.id.toolbar_main)
     Toolbar mToolbar;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,7 +41,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         ButterKnife.bind(this);
         init();
     }
-    public void init(){
+
+    public void init() {
         mNavigationView.setNavigationItemSelectedListener(this);
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.setCustomAnimations(R.animator.fade_in, R.animator.fade_out);
@@ -60,19 +60,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         item.setChecked(true);
         switch (item.getItemId()) {
             case R.id.nav_item_framework:
+                navFragment=new MainFragment();
                 setTitle(R.string.app_name);
                 break;
             case R.id.nav_item_movie:
-                navFragment=new MovieFragmen();
+                navFragment = new MovieFragmen();
                 setTitle(R.string.nav_item_movie);
                 break;
             case R.id.nav_item_douban:
                 setTitle(R.string.nav_item_douban);
-                navFragment=new DouBanFragment();
+                navFragment = new DouBanFragment();
                 break;
             case R.id.nav_item_baiqiu:
                 setTitle(R.string.nav_item_baiqiu);
-                navFragment=new BaiQiuFragment();
+                navFragment = new BaiQiuFragment();
                 break;
             case R.id.nav_item_settings:
                 ToastUtil.showToast("设置");
@@ -81,23 +82,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 ToastUtil.showToast("支持");
                 return true;
             case R.id.nav_item_about:
-                startActivity(new Intent().setClass(MainActivity.this,AboutActivity.class));
+                startActivity(new Intent().setClass(MainActivity.this, AboutActivity.class));
                 return true;
         }
 
         if (navFragment != null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             transaction.setCustomAnimations(R.animator.fade_in, R.animator.fade_out);
-            try {
-                transaction.replace(R.id.content_frame, navFragment).commit();
-            } catch (IllegalStateException ignored) {
-            }
+            transaction.replace(R.id.content_frame, navFragment).commit();
         }
         if (mDrawer.isDrawerOpen(GravityCompat.START)) {
             mDrawer.closeDrawer(GravityCompat.START);
         }
-        return false;
+        return true;
     }
+
     @Override
     public void onBackPressed() {
         if (mDrawer.isDrawerOpen(GravityCompat.START)) {
@@ -109,13 +108,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode==KeyEvent.KEYCODE_MENU){
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
             mDrawer.openDrawer(GravityCompat.START);
             return true;
         }
         return super.onKeyDown(keyCode, event);
     }
-    public DrawerLayout getDrawerLayout(){
+
+    public DrawerLayout getDrawerLayout() {
         return mDrawer;
     }
 }

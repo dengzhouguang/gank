@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.bumptech.glide.Glide;
 import com.dzg.gank.R;
 import com.dzg.gank.ui.view.MyPageTransformer;
 
@@ -137,4 +138,20 @@ public class MainFragment extends Fragment {
             return mList.get(position);
         }
     };
+    @Override
+    public void onResume() {
+        super.onResume();
+        Glide.with(getActivity()).resumeRequests();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Glide.with(getActivity()).pauseRequests();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
 }

@@ -17,6 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.dzg.gank.ItemDecoration.DividerGridItemDecoration;
 import com.dzg.gank.R;
 import com.dzg.gank.adapter.MovieAdapter;
@@ -71,7 +72,6 @@ public class MovieFragmen extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.dianying, container, false);
         ButterKnife.bind(this, view);
-//        register();
         init();
         if (checkNetWork())
             getDianYing(++mPage);
@@ -260,6 +260,18 @@ public class MovieFragmen extends Fragment {
                     }
                 });
         return true;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Glide.with(getActivity()).resumeRequests();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Glide.with(getActivity()).pauseRequests();
     }
 
     @Override

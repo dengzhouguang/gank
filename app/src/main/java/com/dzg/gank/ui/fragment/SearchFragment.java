@@ -158,6 +158,12 @@ public class SearchFragment extends Fragment {
         super.onPause();
         Glide.with(getActivity()).pauseRequests();
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
     @OnClick(R.id.fab)
     public void fab(View view){
         loadSearchDialog();

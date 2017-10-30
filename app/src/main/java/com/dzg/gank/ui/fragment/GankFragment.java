@@ -154,4 +154,9 @@ public class GankFragment extends Fragment {
         super.onPause();
         Glide.with(getActivity()).pauseRequests();
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
 }

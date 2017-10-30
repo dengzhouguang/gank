@@ -14,6 +14,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.bumptech.glide.Glide;
 import com.dzg.gank.R;
 import com.dzg.gank.adapter.RecyclerViewAdapter;
 import com.dzg.gank.listener.ItemTouchHelperCallback;
@@ -266,6 +267,22 @@ public class BaiQiuFragment extends Fragment {
                         loading=false;
                     }
                 });
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        Glide.with(getActivity()).resumeRequests();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Glide.with(getActivity()).pauseRequests();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 
 }

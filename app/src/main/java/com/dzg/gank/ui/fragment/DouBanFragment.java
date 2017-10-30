@@ -19,6 +19,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.dzg.gank.ItemDecoration.DividerItemDecoration;
 import com.dzg.gank.R;
 import com.dzg.gank.adapter.LoadAdapter;
@@ -174,6 +175,22 @@ public class DouBanFragment extends Fragment {
                     }
                 });
         return true;
+    }
+    @Override
+    public void onResume() {
+        super.onResume();
+        Glide.with(getActivity()).resumeRequests();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Glide.with(getActivity()).pauseRequests();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 }
 
