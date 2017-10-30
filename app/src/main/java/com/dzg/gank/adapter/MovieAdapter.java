@@ -114,7 +114,6 @@ public class MovieAdapter extends RecyclerView.Adapter {
 //                        Toast.makeText(App.getInstance(), exception.getMessage(), Toast.LENGTH_LONG).show();
                         Log.e("error", exception.getMessage());
                     }
-                    Log.e("percent",percent+"   "+isDone);
                     mCircleProgressView.setProgress(percent);
                     mCircleProgressView.setVisibility(isDone ? View.GONE : View.VISIBLE);
                 }
