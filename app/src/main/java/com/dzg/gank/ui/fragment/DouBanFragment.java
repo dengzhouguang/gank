@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,6 +28,8 @@ import com.dzg.gank.ui.activity.DouBanDetailActivity;
 import com.dzg.gank.util.CheckNetwork;
 import com.dzg.gank.util.HttpUtil;
 import com.jcodecraeer.xrecyclerview.XRecyclerView;
+import com.trello.rxlifecycle2.android.FragmentEvent;
+import com.trello.rxlifecycle2.components.support.RxFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +42,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 
-public class DouBanFragment extends Fragment {
+public class DouBanFragment extends RxFragment {
     private boolean isFirst=true;
     private static int COUNT=20;
     private boolean isLoading=false;
@@ -56,7 +57,13 @@ public class DouBanFragment extends Fragment {
     ImageView mProgressIv;
     @BindView(R.id.recyclerview)
     XRecyclerView mRecyclerView;
-    
+    private static DouBanFragment instance=null;
+    public static DouBanFragment getInstance() {
+        if (instance == null) {
+            instance = new DouBanFragment();
+        }
+        return instance;
+    }
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
@@ -143,6 +150,7 @@ public class DouBanFragment extends Fragment {
         HttpUtil.getDouBanService().getTopMovieByRetrofit(start, end)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .compose(this.<Movie>bindUntilEvent(FragmentEvent.STOP))
                 .subscribe(new Observer<Movie>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -190,6 +198,8 @@ public class DouBanFragment extends Fragment {
 
     @Override
     public void onDestroy() {
+        if (instance!=null)
+            instance=null;
         super.onDestroy();
     }
 }

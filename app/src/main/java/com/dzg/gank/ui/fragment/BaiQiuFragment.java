@@ -2,7 +2,6 @@ package com.dzg.gank.ui.fragment;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -20,6 +19,8 @@ import com.dzg.gank.adapter.RecyclerViewAdapter;
 import com.dzg.gank.listener.ItemTouchHelperCallback;
 import com.dzg.gank.util.HttpUtil;
 import com.dzg.gank.util.ToastUtil;
+import com.trello.rxlifecycle2.android.FragmentEvent;
+import com.trello.rxlifecycle2.components.support.RxFragment;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -44,7 +45,7 @@ import okhttp3.ResponseBody;
  * Created by dengzhouguang on 2017/10/23.
  */
 
-public class BaiQiuFragment extends Fragment {
+public class BaiQiuFragment extends RxFragment {
     @BindView(R.id.recycler_view_recycler_view)
     RecyclerView mRecyclerView;
     @BindView(R.id.swipe_refresh_layout_recycler_view)
@@ -56,7 +57,14 @@ public class BaiQiuFragment extends Fragment {
     private int color = 0;
     private int mPage = 1;
     private boolean mIsNetWork=true;
+    private static BaiQiuFragment instance=null;
 
+    public static BaiQiuFragment getInstance() {
+        if (instance == null) {
+            instance = new BaiQiuFragment();
+        }
+        return instance;
+    }
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -97,6 +105,7 @@ public class BaiQiuFragment extends Fragment {
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .compose(this.<List<String>>bindUntilEvent(FragmentEvent.STOP))
                 .subscribe(new Observer<List<String>>() {
                     @Override
                     public void onSubscribe(@NonNull Disposable d) {
@@ -239,6 +248,7 @@ public class BaiQiuFragment extends Fragment {
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .compose(this.<List<String>>bindUntilEvent(FragmentEvent.STOP))
                 .subscribe(new Observer<List<String>>() {
                     @Override
                     public void onSubscribe(@NonNull Disposable d) {
@@ -279,9 +289,14 @@ public class BaiQiuFragment extends Fragment {
         super.onPause();
         Glide.with(getActivity()).pauseRequests();
     }
-
+    @Override
+    public void onStart() {
+        super.onStart();
+    }
     @Override
     public void onDestroy() {
+        if (instance!=null)
+            instance=null;
         super.onDestroy();
     }
 

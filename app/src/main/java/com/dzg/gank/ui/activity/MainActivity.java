@@ -20,7 +20,9 @@ import com.dzg.gank.ui.fragment.BaiQiuFragment;
 import com.dzg.gank.ui.fragment.DouBanFragment;
 import com.dzg.gank.ui.fragment.MainFragment;
 import com.dzg.gank.ui.fragment.MovieFragmen;
+import com.dzg.gank.ui.fragment.VideoFragment;
 import com.dzg.gank.util.ToastUtil;
+import com.xiao.nicevideoplayer.NiceVideoPlayerManager;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -46,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mNavigationView.setNavigationItemSelectedListener(this);
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.setCustomAnimations(R.animator.fade_in, R.animator.fade_out);
-        fragmentTransaction.replace(R.id.content_frame, new MainFragment()).commit();
+        fragmentTransaction.replace(R.id.content_frame, MainFragment.getInstance()).commit();
         setSupportActionBar(mToolbar);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, mDrawer, mToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -59,25 +61,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Fragment navFragment = null;
         item.setChecked(true);
         switch (item.getItemId()) {
-            case R.id.nav_item_framework:
-                navFragment=new MainFragment();
+            case R.id.nav_item_gank:
+                navFragment=MainFragment.getInstance();
                 setTitle(R.string.app_name);
                 break;
             case R.id.nav_item_movie:
-                navFragment = new MovieFragmen();
+                navFragment = MovieFragmen.getInstance();
                 setTitle(R.string.nav_item_movie);
                 break;
             case R.id.nav_item_douban:
                 setTitle(R.string.nav_item_douban);
-                navFragment = new DouBanFragment();
+                navFragment = DouBanFragment.getInstance();
                 break;
             case R.id.nav_item_baiqiu:
                 setTitle(R.string.nav_item_baiqiu);
-                navFragment = new BaiQiuFragment();
+                navFragment = BaiQiuFragment.getInstance();
                 break;
-            case R.id.nav_item_settings:
-                ToastUtil.showToast("设置");
-                return true;
+            case R.id.nav_item_video:
+                setTitle("短视频");
+                navFragment=VideoFragment.getInstance();
+                break;
             case R.id.nav_item_support:
                 ToastUtil.showToast("支持");
                 return true;
@@ -89,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (navFragment != null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             transaction.setCustomAnimations(R.animator.fade_in, R.animator.fade_out);
-            transaction.replace(R.id.content_frame, navFragment).commit();
+             transaction.replace(R.id.content_frame, navFragment).commit();
         }
         if (mDrawer.isDrawerOpen(GravityCompat.START)) {
             mDrawer.closeDrawer(GravityCompat.START);
@@ -102,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (mDrawer.isDrawerOpen(GravityCompat.START)) {
             mDrawer.closeDrawer(GravityCompat.START);
         } else {
+            if (NiceVideoPlayerManager.instance().onBackPressd()) return;
             super.onBackPressed();
         }
     }
