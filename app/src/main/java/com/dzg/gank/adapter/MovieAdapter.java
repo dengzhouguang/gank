@@ -41,7 +41,7 @@ public class MovieAdapter extends RecyclerView.Adapter {
         mList = new ArrayList<>();
     }
 
-    public void addAll(List<DianYingBean> list) {
+ /*   public void addAll(List<DianYingBean> list) {
         Log.e("error", list.size() + "");
         if (list.size() > 0) {
             if (list.size() % 2 == 0) {
@@ -59,7 +59,24 @@ public class MovieAdapter extends RecyclerView.Adapter {
             mList.addAll(list);
         }
 //        ListUtil.removeDuplicate(list)
+    }*/
+
+    public void add(DianYingBean bean) {
+        for (DianYingBean dianYingBean : mList) {
+            if (dianYingBean.getTitle().equals(bean.getTitle()))
+                return;
+        }
+        if (mList.size() % 2 == 0) {
+            if (mTempBean != null) {
+                mList.add(mTempBean);
+                mList.add(bean);
+                mTempBean = null;
+            } else
+                mTempBean = bean;
+        }
+
     }
+
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -87,8 +104,6 @@ public class MovieAdapter extends RecyclerView.Adapter {
     class ViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.item_tv)
         TextView mTextView;
-        /*@BindView(R.id.item_iv)
-        ImageView mImageView;*/
         @BindView(R.id.item_iv)
         GlideImageView mGlideImageView;
         @BindView(R.id.item_progress)
@@ -159,7 +174,7 @@ public class MovieAdapter extends RecyclerView.Adapter {
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                   Bundle bundle = new Bundle();
+                    Bundle bundle = new Bundle();
                     bundle.putSerializable("bean", bean);
                     Intent intent = new Intent(mContext, DYDetailActivity.class);
                     intent.putExtras(bundle);

@@ -2,7 +2,6 @@ package com.dzg.gank.ui.fragment;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,6 +21,8 @@ import com.dzg.gank.module.GankBean;
 import com.dzg.gank.util.CheckNetwork;
 import com.dzg.gank.util.HttpUtil;
 import com.jcodecraeer.xrecyclerview.XRecyclerView;
+import com.trello.rxlifecycle2.android.FragmentEvent;
+import com.trello.rxlifecycle2.components.support.RxFragment;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -35,7 +36,7 @@ import io.reactivex.schedulers.Schedulers;
  * Created by dengzhouguang on 2017/10/13.
  */
 
-public class GankFragment extends Fragment {
+public class GankFragment extends RxFragment {
     @BindView(R.id.main_recycler_view)
     XRecyclerView mRecyclerView;
     @BindView(R.id.llwaiting)
@@ -47,7 +48,13 @@ public class GankFragment extends Fragment {
     private Animation mRotate;
     private GankAdapter mAdapter;
     private int mPage=1;
-
+    private static GankFragment instance=null;
+    public static GankFragment getInstance() {
+        if (instance == null) {
+            instance = new GankFragment();
+        }
+        return instance;
+    }
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -95,6 +102,7 @@ public class GankFragment extends Fragment {
         Observable<GankBean> observable= HttpUtil.getGank(mPage+"");
         observable.subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
+                .compose(this.<GankBean>bindUntilEvent(FragmentEvent.STOP))
                 .subscribe(new Observer<GankBean>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -157,6 +165,8 @@ public class GankFragment extends Fragment {
 
     @Override
     public void onDestroy() {
+        if (instance!=null)
+            instance=null;
         super.onDestroy();
     }
 }

@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -37,6 +36,8 @@ import com.dzg.gank.util.HttpUtil;
 import com.dzg.gank.util.SharedPreference;
 import com.dzg.gank.util.Utils;
 import com.jcodecraeer.xrecyclerview.XRecyclerView;
+import com.trello.rxlifecycle2.android.FragmentEvent;
+import com.trello.rxlifecycle2.components.support.RxFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +55,7 @@ import io.reactivex.schedulers.Schedulers;
  * Created by dengzhouguang on 2017/10/13.
  */
 
-public class SearchFragment extends Fragment {
+public class SearchFragment extends RxFragment {
     @BindView(R.id.main_recycler_view)
     XRecyclerView mRecyclerView;
     @BindView(R.id.fab)
@@ -70,6 +71,13 @@ public class SearchFragment extends Fragment {
     private ArrayList<String> mList;
     private String mSearchContent;
     private Animation mRotate;
+    private static SearchFragment instance=null;
+    public static SearchFragment getInstance() {
+        if (instance == null) {
+            instance = new SearchFragment();
+        }
+        return instance;
+    }
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -161,6 +169,8 @@ public class SearchFragment extends Fragment {
 
     @Override
     public void onDestroy() {
+        if (instance!=null)
+            instance=null;
         super.onDestroy();
     }
 
@@ -172,12 +182,12 @@ public class SearchFragment extends Fragment {
     public String loadSearchDialog() {
         ArrayList<String> countryStored = SharedPreference.loadList(getActivity(), Utils.PREFS_NAME, Utils.KEY_COUNTRIES);
         View view = getActivity().getLayoutInflater().inflate(R.layout.view_toolbar_search, null);
-        LinearLayout parentToolbarSearch = (LinearLayout) view.findViewById(R.id.parent_toolbar_search);
-        ImageView imgToolBack = (ImageView) view.findViewById(R.id.img_tool_back);
-        final EditText edtToolSearch = (EditText) view.findViewById(R.id.edt_tool_search);
-        ImageView imgSearch = (ImageView) view.findViewById(R.id.img_tool_search);
-        final ListView listSearch = (ListView) view.findViewById(R.id.list_search);
-        final TextView txtEmpty = (TextView) view.findViewById(R.id.txt_empty);
+        LinearLayout parentToolbarSearch =  view.findViewById(R.id.parent_toolbar_search);
+        ImageView imgToolBack =  view.findViewById(R.id.img_tool_back);
+        final EditText edtToolSearch =  view.findViewById(R.id.edt_tool_search);
+        ImageView imgSearch =  view.findViewById(R.id.img_tool_search);
+        final ListView listSearch =  view.findViewById(R.id.list_search);
+        final TextView txtEmpty =  view.findViewById(R.id.txt_empty);
         Utils.setListViewHeightBasedOnChildren(listSearch);
         edtToolSearch.setHint("搜索你感兴趣的内容");
         final Dialog toolbarSearchDialog = new Dialog(getActivity(), R.style.MaterialSearch);
@@ -226,6 +236,7 @@ public class SearchFragment extends Fragment {
                     HttpUtil.search(Type.ALL,s.toString().trim(),"1")
                             .subscribeOn(Schedulers.newThread())
                             .observeOn(AndroidSchedulers.mainThread())
+                            .compose(SearchFragment.this.<GankBean>bindUntilEvent(FragmentEvent.STOP))
                             .subscribe(new Observer<GankBean>() {
                                 @Override
                                 public void onSubscribe(Disposable d) {
@@ -296,6 +307,7 @@ public class SearchFragment extends Fragment {
         HttpUtil.search(Type.ALL,searchContent,mPage+"")
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
+                .compose(this.<GankBean>bindUntilEvent(FragmentEvent.STOP))
                 .subscribe(new Observer<GankBean>() {
                     @Override
                     public void onSubscribe(Disposable d) {

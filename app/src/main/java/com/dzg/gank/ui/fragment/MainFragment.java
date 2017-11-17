@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
-import android.support.v4.app.Fragment;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
@@ -16,6 +15,7 @@ import android.view.ViewGroup;
 import com.bumptech.glide.Glide;
 import com.dzg.gank.R;
 import com.dzg.gank.ui.view.MyPageTransformer;
+import com.trello.rxlifecycle2.components.support.RxFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,12 +27,18 @@ import butterknife.ButterKnife;
  * Created by dengzhouguang on 2017/10/17.
  */
 
-public class MainFragment extends Fragment {
+public class MainFragment extends RxFragment {
     @BindView(R.id.view_pager_bottom_navigation)
     ViewPager mViewPager;
     @BindView(R.id.bottom_navigation)
     BottomNavigationView mBNV;
-
+    private static MainFragment instance=null;
+    public static MainFragment getInstance() {
+        if (instance == null) {
+            instance = new MainFragment();
+        }
+        return instance;
+    }
 
     @Nullable
     @Override
@@ -151,7 +157,10 @@ public class MainFragment extends Fragment {
     }
 
     @Override
-    public void onDestroy() {
+    public void onDestroy()
+    {
+        if (instance!=null)
+            instance=null;
         super.onDestroy();
     }
 }

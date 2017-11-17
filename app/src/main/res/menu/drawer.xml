@@ -4,29 +4,29 @@
         android:id="@+id/main_items"
         android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_item_framework"
-            android:icon="@drawable/ic_nav_install"
-            android:title="@string/nav_item_install"/>
+            android:id="@+id/nav_item_gank"
+            android:icon="@drawable/ic_nav_gank"
+            android:title="@string/nav_item_gank"/>
         <item
             android:id="@+id/nav_item_movie"
-            android:icon="@drawable/ic_nav_modules"
+            android:icon="@drawable/ic_nav_movie"
             android:title="@string/nav_item_movie"/>
         <item
             android:id="@+id/nav_item_douban"
-            android:icon="@drawable/ic_nav_downloads"
+            android:icon="@drawable/ic_nav_douban"
             android:title="@string/nav_item_douban"/>
         <item
             android:id="@+id/nav_item_baiqiu"
-            android:icon="@drawable/ic_nav_logs"
+            android:icon="@drawable/ic_nav_baike"
             android:title="@string/nav_item_baiqiu"/>
     </group>
     <group
         android:id="@+id/option_items"
         android:checkableBehavior="all">
         <item
-            android:id="@+id/nav_item_settings"
-            android:icon="@drawable/ic_nav_settings"
-            android:title="@string/nav_item_settings"/>
+            android:id="@+id/nav_item_video"
+            android:icon="@drawable/ic_nav_video"
+            android:title="@string/nav_item_video"/>
         <item
             android:id="@+id/nav_item_support"
             android:icon="@drawable/ic_nav_support"

@@ -3,9 +3,7 @@ package com.dzg.gank.ui.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,13 +23,13 @@ import com.dzg.gank.module.DianYingBean;
 import com.dzg.gank.util.CheckNetwork;
 import com.dzg.gank.util.ToastUtil;
 import com.jcodecraeer.xrecyclerview.XRecyclerView;
+import com.trello.rxlifecycle2.android.FragmentEvent;
+import com.trello.rxlifecycle2.components.support.RxFragment;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +48,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
-public class MovieFragmen extends Fragment {
+public class MovieFragmen extends RxFragment {
     private boolean isLoading = false;
     private MovieAdapter mAdapter;
     private Animation mRotate;
@@ -58,7 +56,13 @@ public class MovieFragmen extends Fragment {
     private static String BASE_URL = "http://www.ygdy8.net/html/gndy/dyzz/list_23_";
     private static String Host = "http://www.ygdy8.net";
     private Context mContext;
-
+    private static MovieFragmen instance=null;
+    public static MovieFragmen getInstance() {
+        if (instance == null) {
+            instance = new MovieFragmen();
+        }
+        return instance;
+    }
     @BindView(R.id.llwaiting)
     LinearLayout mLlwaitionLl;
     @BindView(R.id.jiazai)
@@ -67,6 +71,7 @@ public class MovieFragmen extends Fragment {
     ImageView mProgressIv;
     @BindView(R.id.recyclerview)
     XRecyclerView mRecyclerView;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
@@ -126,6 +131,7 @@ public class MovieFragmen extends Fragment {
         });
         mRecyclerView.setAdapter(mAdapter);
     }
+
     @SuppressWarnings("unchecked")
     public boolean getDianYing(final int page) {
         if (isLoading) return false;
@@ -156,110 +162,153 @@ public class MovieFragmen extends Fragment {
                             }
                         });
             }
-        }).delay(5, TimeUnit.SECONDS)
-                .map(new Function<Document, List<DianYingBean>>() {
-                    @Override
-                    public List<DianYingBean> apply(@NonNull Document document) throws Exception {
-                        Elements elements = document.body().select("a.ulink");
-                        List<DianYingBean> list = new ArrayList<>();
-                        for (Element element : elements) {
-                            String url = element.attr("href");
-                            try {
-                                Document dyDoc = Jsoup.connect(Host + url).get();
-                                Elements div = dyDoc.select("div.co_content8");
-                                Elements img = div.select("img[src]");
-                                String imgURL = img.get(0).attr("src");
-                                String sumURL = img.get(1).attr("src");
-                                String downURL = div.select("td").first().text();
-                                Elements content = div.select("span");
-                                content.select("center").remove();
-                                content.select("font").remove();
-                                content.select("a[href]").remove();
-                                String text = content.text();
-
-                                DianYingBean bean = new DianYingBean();
-                                bean.setUrl(imgURL);
-                                bean.setDownUrl(downURL);
-
-                                int end = -1;
-                                int pre = 0;
-                                if ((pre = text.indexOf("◎译　　名")) > 0)
-                                    bean.setTranslation(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
-                                if ((pre = text.indexOf("◎片　　名")) > 0)
-                                    bean.setName(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
-                                if ((pre = text.indexOf("◎国　　家")) > 0)
-                                    bean.setCountry(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
-                                if ((pre = text.indexOf("◎类　　别")) > 0)
-                                    bean.setType(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
-                                if ((pre = text.indexOf("◎语　　言")) > 0)
-                                    bean.setLanguage(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
-                                if ((pre = text.indexOf("◎字　　幕")) > 0)
-                                    bean.setSubtitle(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
-                                if ((pre = text.indexOf("◎IMDb评分")) > 0)
-                                    bean.setScore(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
-                                if ((pre = text.indexOf("◎文件格式")) > 0)
-                                    bean.setFormat(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
-                                if ((pre = text.indexOf("◎视频尺寸")) > 0)
-                                    bean.setMeasure(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
-                                if ((pre = text.indexOf("◎文件大小")) > 0)
-                                    bean.setSize(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
-                                if ((pre = text.indexOf("◎片　　长")) > 0)
-                                    bean.setTime(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
-                                if ((pre = text.indexOf("◎导　　演")) > 0)
-                                    bean.setDirector(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
-                                if ((pre = text.indexOf("◎简　　介")) > 0)
-                                    bean.setStory(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
-                                if (text.indexOf("]") > 0)
-                                    bean.setTitle(text.substring(0, text.indexOf("]")));
-                                else if (bean.getTranslation() != null)
-                                    bean.setTitle(bean.getTranslation().replace("◎译名　", ""));
-                                else if (bean.getName() != null)
-                                    bean.setTitle(bean.getName().replace("◎片名　", ""));
-                                String actor = null;
-                                if ((pre = text.indexOf("◎主　　演")) > 0) {
-                                    actor = text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length());
-                                    actor = actor.replaceAll(" 　　　　　　", "\r\n");
-                                    bean.setActors(actor.replace("◎主　　演　", "主演\r\n"));
-                                }
-                                list.add(bean);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        return list;
-                    }
-                })
-                .subscribeOn(Schedulers.io())
+        }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<List<DianYingBean>>() {
-
+                .compose(this.<Document>bindUntilEvent(FragmentEvent.STOP))
+                .subscribe(new Observer<Document>() {
                     @Override
                     public void onSubscribe(Disposable d) {
 
                     }
-
                     @Override
-                    public void onNext(List<DianYingBean> dianYingBeans) {
-                        Log.e("error","onNext");
-                        mAdapter.addAll(dianYingBeans);
-//                        mAdapter.notifyDataSetChanged();
+                    public void onNext(Document document) {
+                        Elements elements = document.body().select("a.ulink");
+                        List<DianYingBean> list = new ArrayList<>();
+                        int size = elements.size();
+                        for (int i = 0; i < size; i++) {
+                            String url = elements.get(i).attr("href");
+                            getDianYingDetail(Host + url,i);
+                        }
                     }
 
                     @Override
                     public void onError(Throwable e) {
+                        isLoading = false;
                         ToastUtil.showToast("网络发生异常，请检查网络情况。");
                     }
 
                     @Override
                     public void onComplete() {
-                        Log.e("error","onComplete");
-                        mLlwaitionLl.clearAnimation();
-                        mLlwaitionLl.setVisibility(View.GONE);
-                        mRecyclerView.refreshComplete();
                         isLoading = false;
                     }
                 });
+
+        ;
         return true;
+    }
+    @SuppressWarnings("unchecked")
+    public void getDianYingDetail(String url,int index) {
+        Observable.create(new ObservableOnSubscribe() {
+            @Override
+            public void subscribe(@NonNull ObservableEmitter emitter) throws Exception {
+                try {
+                    Document document = Jsoup.connect(url).get();
+                    emitter.onNext(document);
+                    emitter.onComplete();
+                } catch (Exception e) {
+                    emitter.onError(e);
+                }
+            }
+        }).retryWhen(new Function<Observable<Throwable>, ObservableSource<?>>() {
+            @Override
+            public ObservableSource<?> apply(@NonNull Observable<Throwable> throwableObservable) throws Exception {
+                return throwableObservable
+                        .flatMap(new Function<Throwable, ObservableSource<?>>() {
+                            @Override
+                            public ObservableSource<?> apply(@NonNull Throwable throwable) throws Exception {
+                                if (throwable instanceof UnknownHostException) {
+                                    return Observable.error(throwable);
+                                } else {
+                                    return Observable.timer(5, TimeUnit.SECONDS);
+                                }
+                            }
+                        });
+            }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(this.<Document>bindUntilEvent(FragmentEvent.STOP))
+                .subscribe(new Observer<Document>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                    }
+                    @Override
+                    public void onNext(Document document) {
+                        Elements div = document.select("div.co_content8");
+                        Elements img = div.select("img[src]");
+                        String imgURL = img.get(0).attr("src");
+                        String sumURL = img.get(1).attr("src");
+                        String downURL = div.select("td").first().text();
+                        Elements content = div.select("span");
+                        content.select("center").remove();
+                        content.select("font").remove();
+                        content.select("a[href]").remove();
+                        String text = content.text();
+                        DianYingBean bean = new DianYingBean();
+                        bean.setUrl(imgURL);
+                        bean.setDownUrl(downURL);
+
+                        int end = -1;
+                        int pre = 0;
+                        if ((pre = text.indexOf("◎译　　名")) > 0)
+                            bean.setTranslation(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
+                        if ((pre = text.indexOf("◎片　　名")) > 0)
+                            bean.setName(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
+                        if ((pre = text.indexOf("◎国　　家")) > 0)
+                            bean.setCountry(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
+                        if ((pre = text.indexOf("◎类　　别")) > 0)
+                            bean.setType(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
+                        if ((pre = text.indexOf("◎语　　言")) > 0)
+                            bean.setLanguage(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
+                        if ((pre = text.indexOf("◎字　　幕")) > 0)
+                            bean.setSubtitle(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
+                        if ((pre = text.indexOf("◎IMDb评分")) > 0)
+                            bean.setScore(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
+                        if ((pre = text.indexOf("◎文件格式")) > 0)
+                            bean.setFormat(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
+                        if ((pre = text.indexOf("◎视频尺寸")) > 0)
+                            bean.setMeasure(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
+                        if ((pre = text.indexOf("◎文件大小")) > 0)
+                            bean.setSize(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
+                        if ((pre = text.indexOf("◎片　　长")) > 0)
+                            bean.setTime(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
+                        if ((pre = text.indexOf("◎导　　演")) > 0)
+                            bean.setDirector(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
+                        if ((pre = text.indexOf("◎简　　介")) > 0)
+                            bean.setStory(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
+                        if (text.indexOf("]") > 0)
+                            bean.setTitle(text.substring(0, text.indexOf("]")));
+                        else if (bean.getTranslation() != null)
+                            bean.setTitle(bean.getTranslation().replace("◎译名　", ""));
+                        else if (bean.getName() != null)
+                            bean.setTitle(bean.getName().replace("◎片名　", ""));
+                        String actor = null;
+                        if ((pre = text.indexOf("◎主　　演")) > 0) {
+                            actor = text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length());
+                            actor = actor.replaceAll(" 　　　　　　", "\r\n");
+                            bean.setActors(actor.replace("◎主　　演　", "主演\r\n"));
+                        }
+                        mAdapter.add(bean);
+                        if (mAdapter.getItemCount()%2==0)
+                        mAdapter.notifyDataSetChanged();
+                        if (index>6){
+                            if (mLlwaitionLl.getVisibility()==View.VISIBLE){
+                            mLlwaitionLl.clearAnimation();
+                            mLlwaitionLl.setVisibility(View.GONE);
+                            }
+                            mRecyclerView.loadMoreComplete();
+                            mRecyclerView.refreshComplete();
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                });
     }
 
     @Override
@@ -276,13 +325,15 @@ public class MovieFragmen extends Fragment {
 
     @Override
     public void onDestroy() {
+        if (instance!=null)
+            instance=null;
         super.onDestroy();
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        mContext=context;
+        mContext = context;
     }
 
    /* public void register(){

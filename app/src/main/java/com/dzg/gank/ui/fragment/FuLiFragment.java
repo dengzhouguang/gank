@@ -3,7 +3,6 @@ package com.dzg.gank.ui.fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,6 +25,8 @@ import com.dzg.gank.ui.activity.ViewBigImageActivity;
 import com.dzg.gank.util.CheckNetwork;
 import com.dzg.gank.util.HttpUtil;
 import com.jcodecraeer.xrecyclerview.XRecyclerView;
+import com.trello.rxlifecycle2.android.FragmentEvent;
+import com.trello.rxlifecycle2.components.support.RxFragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +42,7 @@ import io.reactivex.schedulers.Schedulers;
  * Created by Administrator on 2017/4/6.
  */
 
-public class FuLiFragment extends Fragment {
+public class FuLiFragment extends RxFragment {
     @BindView(R.id.recyclerview)
     XRecyclerView mRecyclerView;
     @BindView(R.id.progress)
@@ -57,7 +58,13 @@ public class FuLiFragment extends Fragment {
     private ArrayList<String> imgList = new ArrayList<>();
     private Animation rotate;
     private int page = 1;
-
+    private static FuLiFragment instance=null;
+    public static FuLiFragment getInstance() {
+        if (instance == null) {
+            instance = new FuLiFragment();
+        }
+        return instance;
+    }
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
@@ -134,6 +141,7 @@ public class FuLiFragment extends Fragment {
         HttpUtil.getFuliService().getFuLiData(page)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .compose(this.<FuLiBean>bindUntilEvent(FragmentEvent.STOP))
                 .subscribe(new Observer<FuLiBean>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -183,6 +191,8 @@ public class FuLiFragment extends Fragment {
 
     @Override
     public void onDestroy() {
+        if (instance!=null)
+            instance=null;
         super.onDestroy();
     }
 }
