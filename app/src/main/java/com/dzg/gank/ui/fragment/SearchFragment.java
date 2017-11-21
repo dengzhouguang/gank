@@ -26,36 +26,39 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.dzg.gank.App;
 import com.dzg.gank.R;
 import com.dzg.gank.adapter.SearchAdapter;
 import com.dzg.gank.adapter.SearchResultAdapter;
-import com.dzg.gank.module.GankBean;
-import com.dzg.gank.module.Type;
+import com.dzg.gank.injector.component.ApplicationComponent;
+import com.dzg.gank.injector.component.DaggerSearchComponent;
+import com.dzg.gank.injector.component.SearchComponent;
+import com.dzg.gank.injector.module.FragmentModule;
+import com.dzg.gank.injector.module.SearchModule;
+import com.dzg.gank.mvp.contract.SearchContract;
+import com.dzg.gank.mvp.model.GankBean;
+import com.dzg.gank.mvp.model.Type;
 import com.dzg.gank.util.CheckNetwork;
-import com.dzg.gank.util.HttpUtil;
 import com.dzg.gank.util.SharedPreference;
 import com.dzg.gank.util.Utils;
 import com.jcodecraeer.xrecyclerview.XRecyclerView;
-import com.trello.rxlifecycle2.android.FragmentEvent;
 import com.trello.rxlifecycle2.components.support.RxFragment;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by dengzhouguang on 2017/10/13.
  */
 
-public class SearchFragment extends RxFragment {
+public class SearchFragment extends RxFragment implements SearchContract.View{
     @BindView(R.id.main_recycler_view)
     XRecyclerView mRecyclerView;
     @BindView(R.id.fab)
@@ -66,6 +69,8 @@ public class SearchFragment extends RxFragment {
     TextView mJiazaiTv;
     @BindView(R.id.llwaiting)
     LinearLayout mLayout;
+    @Inject
+    SearchContract.Presenter mPresenter;
     private SearchResultAdapter mAdapter;
     private int mPage=1;
     private ArrayList<String> mList;
@@ -89,10 +94,21 @@ public class SearchFragment extends RxFragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        init();
-    }
+        injectDependences();
+        mPresenter.attachView(this);
+        initView();
 
-    public void init(){
+    }
+    private void injectDependences() {
+        ApplicationComponent applicationComponent = App.getInstance().getApplicationComponent();
+        SearchComponent component= DaggerSearchComponent.builder()
+                .applicationComponent(applicationComponent)
+                .searchModule(new SearchModule())
+                .fragmentModule(new FragmentModule(this))
+                .build();
+        component.inject(this);
+    }
+    public void initView(){
         mList=new ArrayList<>();
         mRotate= AnimationUtils.loadAnimation(getActivity(),R.anim.rotate);
         mRotate.setInterpolator(new LinearInterpolator());
@@ -123,36 +139,13 @@ public class SearchFragment extends RxFragment {
             return;
         Observable<GankBean> observable;
         if (mSearchContent==null){
-            observable= HttpUtil.getGank(mPage+"");
+            mPresenter.loadData(mPage+"");
             mPage++;
         }
         else {
             mPage++;
-            observable = HttpUtil.search(Type.ALL, mSearchContent, mPage + "");
+            mPresenter.search(Type.ALL,mPage+"",mSearchContent);
         }
-        observable.subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<GankBean>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(GankBean gankBean) {
-                        mProgress.clearAnimation();
-                        mLayout.setVisibility(View.GONE);
-                        mAdapter.add(gankBean.getResults());
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Toast.makeText(getActivity(),e.getMessage(),Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onComplete() {}
-                });
         mAdapter.notifyDataSetChanged();
     }
     @Override
@@ -203,7 +196,7 @@ public class SearchFragment extends RxFragment {
                     toolbarSearchDialog.dismiss();
                 else if (KeyEvent.KEYCODE_ENTER==keyCode){
                     toolbarSearchDialog.dismiss();
-                    loadData(edtToolSearch.getText().toString());
+                    mPresenter.searchContent(Type.ALL,mPage+"",edtToolSearch.getText().toString());
                 }
                 return false;
             }
@@ -220,7 +213,7 @@ public class SearchFragment extends RxFragment {
                 SharedPreference.addList(getActivity(), Utils.PREFS_NAME, Utils.KEY_COUNTRIES, content);
                 edtToolSearch.setText(content);
                 toolbarSearchDialog.dismiss();
-                loadData(edtToolSearch.getText().toString());
+                mPresenter.searchContent(Type.ALL,mPage+"",edtToolSearch.getText().toString());
                 listSearch.setVisibility(View.GONE);
             }
         });
@@ -233,43 +226,7 @@ public class SearchFragment extends RxFragment {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (s.length() > 0) {
-                    HttpUtil.search(Type.ALL,s.toString().trim(),"1")
-                            .subscribeOn(Schedulers.newThread())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .compose(SearchFragment.this.<GankBean>bindUntilEvent(FragmentEvent.STOP))
-                            .subscribe(new Observer<GankBean>() {
-                                @Override
-                                public void onSubscribe(Disposable d) {
-
-                                }
-
-                                @Override
-                                public void onNext(GankBean gankBean) {
-                                    List<GankBean.ResultsBean> results = gankBean.getResults();
-
-                                    if (results.size()>0){
-                                        ArrayList<String> content=new ArrayList<>();
-                                        for (GankBean.ResultsBean bean:results) {
-                                            content.add(bean.getDesc());
-                                        };
-                                        listSearch.setVisibility(View.VISIBLE);
-                                        searchAdapter.updateList(content, true);
-                                    }
-                                    else{
-                                        listSearch.setVisibility(View.GONE);
-                                        txtEmpty.setVisibility(View.VISIBLE);
-                                        txtEmpty.setText("没有找到数据");
-                                    }
-                                }
-
-                                @Override
-                                public void onError(Throwable e) {
-                                    Toast.makeText(getActivity(),e.getMessage(),Toast.LENGTH_SHORT).show();
-                                }
-
-                                @Override
-                                public void onComplete() {}
-                            });
+                   mPresenter.searchDialog(Type.ALL,"1",s.toString(),listSearch,searchAdapter,txtEmpty);
                 } else {
                     listSearch.setVisibility(View.GONE);
                     txtEmpty.setVisibility(View.GONE);
@@ -292,45 +249,35 @@ public class SearchFragment extends RxFragment {
             @Override
             public void onClick(View view) {
                 toolbarSearchDialog.dismiss();
-                loadData(edtToolSearch.getText().toString());
+                mPresenter.searchContent(Type.ALL,mPage+"",edtToolSearch.getText().toString());
             }
         });
         return edtToolSearch.getText().toString();
     }
-    public void loadData(String searchContent){
-        if (!checkNetWork())
-            return;
-        mLayout.setVisibility(View.VISIBLE);
-        mProgress.startAnimation(mRotate);
-        mPage=1;
-        mSearchContent=searchContent;
-        HttpUtil.search(Type.ALL,searchContent,mPage+"")
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(this.<GankBean>bindUntilEvent(FragmentEvent.STOP))
-                .subscribe(new Observer<GankBean>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
 
-                    }
 
-                    @Override
-                    public void onNext(GankBean gankBean) {
-                        mProgress.clearAnimation();
-                        mLayout.setVisibility(View.GONE);
-                        if (gankBean.getResults().size()>0)
-                            mAdapter.setData(gankBean.getResults());
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Toast.makeText(getActivity(),e.getMessage(),Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onComplete() {}
-                });
+    @Override
+    public void loadDataSuccess(GankBean bean) {
+        mProgress.clearAnimation();
+        mLayout.setVisibility(View.GONE);
+        mAdapter.add(bean.getResults());
     }
+
+    @Override
+    public void loadDataError(Throwable e) {
+        Toast.makeText(getActivity(),e.getMessage(),Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void loadDataComplete() {
+
+    }
+
+    @Override
+    public void loadDataFinish() {
+        mAdapter.notifyDataSetChanged();
+    }
+
     public boolean checkNetWork() {
         if (!CheckNetwork.isNetworkConnected(getActivity())) {
             mProgress.setVisibility(View.GONE);
@@ -352,6 +299,44 @@ public class SearchFragment extends RxFragment {
             });
             return false;
         }
+        return true;
+    }
+
+    @Override
+    public void loadSearch(GankBean gankBean,ListView listSearch,SearchAdapter searchAdapter,TextView txtEmpty) {
+        List<GankBean.ResultsBean> results = gankBean.getResults();
+
+        if (results.size()>0){
+            ArrayList<String> content=new ArrayList<>();
+            for (GankBean.ResultsBean bean:results) {
+                content.add(bean.getDesc());
+            };
+            listSearch.setVisibility(View.VISIBLE);
+            searchAdapter.updateList(content, true);
+        }
+        else{
+            listSearch.setVisibility(View.GONE);
+            txtEmpty.setVisibility(View.VISIBLE);
+            txtEmpty.setText("没有找到数据");
+        }
+    }
+
+    @Override
+    public void loadsearchSuccess(GankBean gankBean) {
+        mProgress.clearAnimation();
+        mLayout.setVisibility(View.GONE);
+        if (gankBean.getResults().size()>0)
+            mAdapter.setData(gankBean.getResults());
+    }
+
+    @Override
+    public boolean preSearch(String searchContent) {
+        if (!checkNetWork())
+            return false;
+        mLayout.setVisibility(View.VISIBLE);
+        mProgress.startAnimation(mRotate);
+        mPage=1;
+        mSearchContent=searchContent;
         return true;
     }
 

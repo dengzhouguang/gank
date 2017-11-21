@@ -15,28 +15,30 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.dzg.gank.App;
 import com.dzg.gank.R;
 import com.dzg.gank.adapter.GankAdapter;
-import com.dzg.gank.module.GankBean;
+import com.dzg.gank.injector.component.ApplicationComponent;
+import com.dzg.gank.injector.component.DaggerGankComponent;
+import com.dzg.gank.injector.component.GankComponent;
+import com.dzg.gank.injector.module.FragmentModule;
+import com.dzg.gank.injector.module.GankModule;
+import com.dzg.gank.mvp.contract.GankContract;
+import com.dzg.gank.mvp.model.GankBean;
 import com.dzg.gank.util.CheckNetwork;
-import com.dzg.gank.util.HttpUtil;
 import com.jcodecraeer.xrecyclerview.XRecyclerView;
-import com.trello.rxlifecycle2.android.FragmentEvent;
 import com.trello.rxlifecycle2.components.support.RxFragment;
+
+import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.Observable;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by dengzhouguang on 2017/10/13.
  */
 
-public class GankFragment extends RxFragment {
+public class GankFragment extends RxFragment implements GankContract.View{
     @BindView(R.id.main_recycler_view)
     XRecyclerView mRecyclerView;
     @BindView(R.id.llwaiting)
@@ -49,6 +51,8 @@ public class GankFragment extends RxFragment {
     private GankAdapter mAdapter;
     private int mPage=1;
     private static GankFragment instance=null;
+    @Inject
+    GankContract.Presenter mPresenter;
     public static GankFragment getInstance() {
         if (instance == null) {
             instance = new GankFragment();
@@ -66,10 +70,20 @@ public class GankFragment extends RxFragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        init();
+        injectDependences();
+        mPresenter.attachView(this);
+        initView();
     }
-
-    public void init(){
+    private void injectDependences() {
+        ApplicationComponent applicationComponent = App.getInstance().getApplicationComponent();
+        GankComponent component= DaggerGankComponent.builder()
+                .applicationComponent(applicationComponent)
+                .gankModule(new GankModule())
+                .fragmentModule(new FragmentModule(this))
+                .build();
+        component.inject(this);
+    }
+    public void initView(){
         mRotate= AnimationUtils.loadAnimation(getActivity(),R.anim.rotate);
         mRotate.setInterpolator(new LinearInterpolator());
         mProgress.startAnimation(mRotate);
@@ -87,42 +101,33 @@ public class GankFragment extends RxFragment {
 
             @Override
             public void onLoadMore() {
-                showData();
+                mPresenter.loadData(mPage+"");
                 mRecyclerView.loadMoreComplete();
             }
         });
         mRecyclerView.setPullRefreshEnabled(false);
-        showData();
+        mPresenter.loadData(mPage+"");
     }
 
-    public void showData(){
-        if (!checkNetWork()){
-            return;
-        }
-        Observable<GankBean> observable= HttpUtil.getGank(mPage+"");
-        observable.subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(this.<GankBean>bindUntilEvent(FragmentEvent.STOP))
-                .subscribe(new Observer<GankBean>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
 
-                    }
+    @Override
+    public void loadDataSuccess(GankBean bean) {
+        mLinearlayout.setVisibility(View.GONE);
+        mAdapter.add(bean.getResults());
+    }
 
-                    @Override
-                    public void onNext(GankBean gankBean) {
-                        mLinearlayout.setVisibility(View.GONE);
-                        mAdapter.add(gankBean.getResults());
-                    }
+    @Override
+    public void loadDataError(Throwable e) {
+        Toast.makeText(getActivity(),e.getMessage(),Toast.LENGTH_SHORT).show();
+    }
 
-                    @Override
-                    public void onError(Throwable e) {
-                        Toast.makeText(getActivity(),e.getMessage(),Toast.LENGTH_SHORT).show();
-                    }
+    @Override
+    public void loadDataComplete() {
 
-                    @Override
-                    public void onComplete() {}
-                });
+    }
+
+    @Override
+    public void loadDataFinish() {
         mAdapter.notifyDataSetChanged();
         ++mPage;
     }
@@ -143,7 +148,7 @@ public class GankFragment extends RxFragment {
                     mJiazaiTv.setText("正在加载.......");
                     mProgress.setVisibility(View.VISIBLE);
                     mProgress.startAnimation(mRotate);
-                    showData();
+                    mPresenter.loadData(mPage+"");
                 }
             });
             return false;

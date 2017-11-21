@@ -17,7 +17,7 @@ import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 import com.dzg.gank.R;
 import com.dzg.gank.listener.OnItemClickListener;
-import com.dzg.gank.module.FuLiBean;
+import com.dzg.gank.mvp.model.FuLiBean;
 import com.dzg.gank.util.DensityUtil;
 
 import java.util.ArrayList;

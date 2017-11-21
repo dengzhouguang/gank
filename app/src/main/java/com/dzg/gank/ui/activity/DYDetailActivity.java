@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.dzg.gank.R;
-import com.dzg.gank.module.DianYingBean;
+import com.dzg.gank.mvp.model.DianYingBean;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;

@@ -19,33 +19,36 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.dzg.gank.ItemDecoration.DividerItemDecoration;
+import com.dzg.gank.App;
 import com.dzg.gank.R;
 import com.dzg.gank.adapter.LoadAdapter;
+import com.dzg.gank.injector.component.ApplicationComponent;
+import com.dzg.gank.injector.component.DaggerDouBanComponent;
+import com.dzg.gank.injector.component.DouBanComponent;
+import com.dzg.gank.injector.module.DouBanModule;
+import com.dzg.gank.injector.module.FragmentModule;
 import com.dzg.gank.listener.OnDouBanItemClickListener;
-import com.dzg.gank.module.Movie;
+import com.dzg.gank.mvp.contract.DouBanContract;
+import com.dzg.gank.mvp.model.Movie;
 import com.dzg.gank.ui.activity.DouBanDetailActivity;
+import com.dzg.gank.ui.view.ItemDecoration.DividerItemDecoration;
 import com.dzg.gank.util.CheckNetwork;
-import com.dzg.gank.util.HttpUtil;
 import com.jcodecraeer.xrecyclerview.XRecyclerView;
-import com.trello.rxlifecycle2.android.FragmentEvent;
 import com.trello.rxlifecycle2.components.support.RxFragment;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 
-public class DouBanFragment extends RxFragment {
-    private boolean isFirst=true;
-    private static int COUNT=20;
-    private boolean isLoading=false;
+public class DouBanFragment extends RxFragment implements DouBanContract.View {
+    private boolean isFirst = true;
+    private static int COUNT = 20;
+    private boolean isLoading = false;
     private LoadAdapter mAdapter;
     private ArrayList<String> imgList;
     private Animation rotate;
@@ -57,50 +60,68 @@ public class DouBanFragment extends RxFragment {
     ImageView mProgressIv;
     @BindView(R.id.recyclerview)
     XRecyclerView mRecyclerView;
-    private static DouBanFragment instance=null;
+    @Inject
+    DouBanContract.Presenter mPresenter;
+
+    private static DouBanFragment instance = null;
+
     public static DouBanFragment getInstance() {
         if (instance == null) {
             instance = new DouBanFragment();
         }
         return instance;
     }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        View view=inflater.inflate(R.layout.douban,container,false);
-        ButterKnife.bind(this,view);
-        init();
-        if (checkNetWork())
-        getMovies(imgList.size(), imgList.size()+COUNT);
+        View view = inflater.inflate(R.layout.douban, container, false);
+        ButterKnife.bind(this, view);
+        initView();
+        injectDependences();
+        mPresenter.attachView(this);
+        if (checkNetWork()) {
+            mPresenter.loadData(imgList.size(), imgList.size() + COUNT);
+        }
         return view;
     }
-    public boolean checkNetWork(){
-        if (!CheckNetwork.isNetworkConnected(getActivity())){
+    private void injectDependences() {
+        ApplicationComponent applicationComponent = App.getInstance().getApplicationComponent();
+        DouBanComponent component= DaggerDouBanComponent.builder()
+                .applicationComponent(applicationComponent)
+                .douBanModule(new DouBanModule())
+                .fragmentModule(new FragmentModule(this))
+                .build();
+        component.inject(this);
+    }
+    public boolean checkNetWork() {
+        if (!CheckNetwork.isNetworkConnected(getActivity())) {
             mProgressIv.setVisibility(View.GONE);
             mProgressIv.clearAnimation();
             mJiazaiTv.setText("当前网络不可用，请检查网络！！！\r\n点击界面刷新.......");
             mJiazaiTv.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (!CheckNetwork.isNetworkConnected(getActivity())){
-                        Toast.makeText(getActivity(),"网络不可用，请检查网络连接",Toast.LENGTH_SHORT).show();
+                    if (!CheckNetwork.isNetworkConnected(getActivity())) {
+                        Toast.makeText(getActivity(), "网络不可用，请检查网络连接", Toast.LENGTH_SHORT).show();
                         mJiazaiTv.setText("当前网络不可用，请检查网络！！！\r\n点击界面刷新.......");
                         return;
                     }
                     mJiazaiTv.setText("正在加载.......");
                     mProgressIv.setVisibility(View.VISIBLE);
                     mProgressIv.startAnimation(rotate);
-                    getMovies(imgList.size(), imgList.size()+COUNT);
+                    mPresenter.loadData(imgList.size(), imgList.size() + COUNT);
                 }
             });
             return false;
         }
         return true;
     }
-    private void init() {
-        imgList=new ArrayList<>();
+
+    private void initView() {
+        imgList = new ArrayList<>();
         mAdapter = new LoadAdapter(getActivity());
-        rotate= AnimationUtils.loadAnimation(getActivity(),R.anim.rotate);
+        rotate = AnimationUtils.loadAnimation(getActivity(), R.anim.rotate);
         rotate.setInterpolator(new LinearInterpolator());
         mProgressIv.startAnimation(rotate);
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 2));
@@ -115,75 +136,29 @@ public class DouBanFragment extends RxFragment {
 
             @Override
             public void onLoadMore() {
-                getMovies(imgList.size(),imgList.size()+10);
+                mPresenter.loadData(imgList.size(), imgList.size() + 10);
             }
         });
         mAdapter.setOnItemClickListener(new OnDouBanItemClickListener<Movie.SubjectsBean>() {
             ImageView mImageView = null;
+
             @Override
             public void setImageView(ImageView view) {
-                mImageView=view;
+                mImageView = view;
             }
 
             @Override
             public void onClick(Movie.SubjectsBean subjectsBean, int position) {
-
-                /*Intent intent = new Intent(context, OneMovieDetailActivity.class);
-                intent.putExtra("bean", positionData);
-                ActivityOptionsCompat options =
-                        ActivityOptionsCompat.makeSceneTransitionAnimation(context,
-                                imageView, CommonUtils.getString(R.string.transition_movie_img));//与xml文件对应
-                ActivityCompat.startActivity(context, intent, options.toBundle());*/
-
                 ActivityOptionsCompat options =
                         ActivityOptionsCompat.makeSceneTransitionAnimation(getActivity(),
                                 mImageView, getActivity().getString(R.string.transition_movie_img));
-                Intent intent=new Intent(getActivity(), DouBanDetailActivity.class);
-                intent.putExtra("SubjectsBean",subjectsBean);
+                Intent intent = new Intent(getActivity(), DouBanDetailActivity.class);
+                intent.putExtra("SubjectsBean", subjectsBean);
                 ActivityCompat.startActivity(getActivity(), intent, options.toBundle());
             }
         });
     }
-    public boolean getMovies(int start, int end) {
-        if (isLoading) return false;
-        isLoading=true;
-        HttpUtil.getDouBanService().getTopMovieByRetrofit(start, end)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(this.<Movie>bindUntilEvent(FragmentEvent.STOP))
-                .subscribe(new Observer<Movie>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
 
-                    }
-                    @Override
-                    public void onNext(Movie movie) {
-                        List<Movie.SubjectsBean> subjects = movie.getSubjects();
-                        mAdapter.addAll(subjects);
-
-                        if (isFirst)
-                        { mRecyclerView.setAdapter(mAdapter);
-                            isFirst=false;
-                        }
-                        for (Movie.SubjectsBean bean: subjects){
-                            imgList.add(bean.getImages().getLarge());}
-                        mAdapter.notifyDataSetChanged();
-                        isLoading=false;
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Toast.makeText(getActivity(), "发生错误了", Toast.LENGTH_SHORT).show();
-                    }
-                    @Override
-                    public void onComplete() {
-                        rotate.cancel();
-                        mLlwaitionLl.setVisibility(View.GONE);
-                        mRecyclerView.refreshComplete();
-                    }
-                });
-        return true;
-    }
     @Override
     public void onResume() {
         super.onResume();
@@ -198,9 +173,44 @@ public class DouBanFragment extends RxFragment {
 
     @Override
     public void onDestroy() {
-        if (instance!=null)
-            instance=null;
+        if (instance != null)
+            instance = null;
         super.onDestroy();
+    }
+
+    @Override
+    public void loadDataSuccess(Movie movie) {
+        List<Movie.SubjectsBean> subjects = movie.getSubjects();
+        mAdapter.addAll(subjects);
+
+        if (isFirst) {
+            mRecyclerView.setAdapter(mAdapter);
+            isFirst = false;
+        }
+        for (Movie.SubjectsBean bean : subjects) {
+            imgList.add(bean.getImages().getLarge());
+        }
+        mAdapter.notifyDataSetChanged();
+        isLoading = false;
+    }
+
+    @Override
+    public void loadDataError() {
+        Toast.makeText(getActivity(), "发生错误了", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void loadDateComplete() {
+        rotate.cancel();
+        mLlwaitionLl.setVisibility(View.GONE);
+        mRecyclerView.refreshComplete();
+    }
+
+    @Override
+    public boolean setLoading() {
+        if (isLoading) return false;
+        isLoading = true;
+        return true;
     }
 }
 

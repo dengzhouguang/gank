@@ -17,7 +17,7 @@ import android.widget.TextView;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestOptions;
 import com.dzg.gank.R;
-import com.dzg.gank.module.DianYingBean;
+import com.dzg.gank.mvp.model.DianYingBean;
 import com.dzg.gank.ui.activity.DYDetailActivity;
 import com.dzg.gank.util.DensityUtil;
 import com.sunfusheng.glideimageview.GlideImageView;

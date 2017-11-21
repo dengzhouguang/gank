@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.dzg.gank.R;
-import com.dzg.gank.module.MovieDetail;
+import com.dzg.gank.mvp.model.MovieDetail;
 import com.dzg.gank.ui.webview.WebViewActivity;
 
 import butterknife.BindView;

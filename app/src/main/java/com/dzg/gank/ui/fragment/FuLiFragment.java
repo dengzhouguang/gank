@@ -16,33 +16,36 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.dzg.gank.ItemDecoration.DividerItemDecoration;
+import com.dzg.gank.App;
 import com.dzg.gank.R;
 import com.dzg.gank.adapter.FuLiAdapter;
+import com.dzg.gank.injector.component.ApplicationComponent;
+import com.dzg.gank.injector.component.DaggerFuLiComponent;
+import com.dzg.gank.injector.component.FuLiComponent;
+import com.dzg.gank.injector.module.FragmentModule;
+import com.dzg.gank.injector.module.FuLiModule;
 import com.dzg.gank.listener.OnItemClickListener;
-import com.dzg.gank.module.FuLiBean;
+import com.dzg.gank.mvp.contract.FuLiContract;
+import com.dzg.gank.mvp.model.FuLiBean;
 import com.dzg.gank.ui.activity.ViewBigImageActivity;
+import com.dzg.gank.ui.view.ItemDecoration.DividerItemDecoration;
 import com.dzg.gank.util.CheckNetwork;
-import com.dzg.gank.util.HttpUtil;
 import com.jcodecraeer.xrecyclerview.XRecyclerView;
-import com.trello.rxlifecycle2.android.FragmentEvent;
 import com.trello.rxlifecycle2.components.support.RxFragment;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by Administrator on 2017/4/6.
  */
 
-public class FuLiFragment extends RxFragment {
+public class FuLiFragment extends RxFragment implements FuLiContract.View{
     @BindView(R.id.recyclerview)
     XRecyclerView mRecyclerView;
     @BindView(R.id.progress)
@@ -59,6 +62,9 @@ public class FuLiFragment extends RxFragment {
     private Animation rotate;
     private int page = 1;
     private static FuLiFragment instance=null;
+    @Inject
+    FuLiContract.Presenter mPresenter;
+
     public static FuLiFragment getInstance() {
         if (instance == null) {
             instance = new FuLiFragment();
@@ -70,13 +76,23 @@ public class FuLiFragment extends RxFragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_fuli, null);
         ButterKnife.bind(this, view);
-        init();
+        injectDependences();
+        initView();
+        mPresenter.attachView(this);
         if (checkNetWork())
-            getFuLi(page);
+            mPresenter.loadData(page);
         return view;
     }
-
-    private void init() {
+    private void injectDependences() {
+        ApplicationComponent applicationComponent = App.getInstance().getApplicationComponent();
+        FuLiComponent component= DaggerFuLiComponent.builder()
+                .applicationComponent(applicationComponent)
+                .fuLiModule(new FuLiModule())
+                .fragmentModule(new FragmentModule(this))
+                .build();
+        component.inject(this);
+    }
+    private void initView() {
         mAdapter = new FuLiAdapter(getActivity());
         rotate = AnimationUtils.loadAnimation(getActivity(), R.anim.rotate);
         rotate.setInterpolator(new LinearInterpolator());
@@ -93,7 +109,7 @@ public class FuLiFragment extends RxFragment {
 
             @Override
             public void onLoadMore() {
-                getFuLi(++page);
+                mPresenter.loadData(++page);
             }
         });
         mAdapter.setOnItemClickListener(new OnItemClickListener<FuLiBean.ResultsBean>() {
@@ -126,7 +142,7 @@ public class FuLiFragment extends RxFragment {
                     jiazai.setText("正在加载.......");
                     mProgress.setVisibility(View.VISIBLE);
                     mProgress.startAnimation(rotate);
-                    getFuLi(page);
+                    mPresenter.loadData(page);
                 }
             });
             return false;
@@ -134,49 +150,6 @@ public class FuLiFragment extends RxFragment {
         return true;
     }
 
-    public boolean getFuLi(int page) {
-        if (isLoading) return false;
-        isLoading = true;
-
-        HttpUtil.getFuliService().getFuLiData(page)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(this.<FuLiBean>bindUntilEvent(FragmentEvent.STOP))
-                .subscribe(new Observer<FuLiBean>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-                    }
-
-                    @Override
-                    public void onNext(FuLiBean bean) {
-                        List<FuLiBean.ResultsBean> subjects = bean.getResults();
-                        mAdapter.addAll(subjects);
-
-                        if (isFirst) {
-                            mRecyclerView.setAdapter(mAdapter);
-                            isFirst = false;
-                        }
-                        for (FuLiBean.ResultsBean resultsBeanbean : subjects) {
-//                            Log.e("youdu",resultsBeanbean.getUrl());
-                            imgList.add(resultsBeanbean.getUrl());
-                        }
-                        isLoading = false;
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        rotate.cancel();
-                        mLayout.setVisibility(View.GONE);
-                        mRecyclerView.refreshComplete();
-                    }
-                });
-        return true;
-    }
     @Override
     public void onResume() {
         super.onResume();
@@ -194,5 +167,39 @@ public class FuLiFragment extends RxFragment {
         if (instance!=null)
             instance=null;
         super.onDestroy();
+    }
+
+    @Override
+    public void loadDataSuccess(FuLiBean bean) {
+        List<FuLiBean.ResultsBean> subjects = bean.getResults();
+        mAdapter.addAll(subjects);
+
+        if (isFirst) {
+            mRecyclerView.setAdapter(mAdapter);
+            isFirst = false;
+        }
+        for (FuLiBean.ResultsBean resultsBeanbean : subjects) {
+            imgList.add(resultsBeanbean.getUrl());
+        }
+        isLoading = false;
+    }
+
+    @Override
+    public void loadDataError() {
+        Toast.makeText(getActivity(),"发送了一个错误", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void loadDateComplete() {
+        rotate.cancel();
+        mLayout.setVisibility(View.GONE);
+        mRecyclerView.refreshComplete();
+    }
+
+    @Override
+    public boolean setLoading() {
+        if (isLoading) return false;
+        isLoading = true;
+        return true;
     }
 }

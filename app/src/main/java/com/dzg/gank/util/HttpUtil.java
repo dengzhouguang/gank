@@ -3,13 +3,13 @@ package com.dzg.gank.util;
 import android.support.annotation.NonNull;
 
 import com.dzg.gank.App;
-import com.dzg.gank.api.BaiQiuService;
-import com.dzg.gank.api.FuLiService;
-import com.dzg.gank.api.GankSevice;
-import com.dzg.gank.api.INewsApi;
-import com.dzg.gank.api.MovieService;
-import com.dzg.gank.module.Constants;
-import com.dzg.gank.module.GankBean;
+import com.dzg.gank.repository.interfaces.BaiQiuService;
+import com.dzg.gank.repository.interfaces.FuLiService;
+import com.dzg.gank.repository.interfaces.GankSevice;
+import com.dzg.gank.repository.interfaces.IMobileNewsApi;
+import com.dzg.gank.repository.interfaces.IVideoApi;
+import com.dzg.gank.repository.interfaces.MovieService;
+import com.dzg.gank.mvp.model.Constants;
 import com.franmontiel.persistentcookiejar.ClearableCookieJar;
 import com.franmontiel.persistentcookiejar.PersistentCookieJar;
 import com.franmontiel.persistentcookiejar.cache.SetCookieCache;
@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import io.reactivex.Observable;
 import okhttp3.Cache;
 import okhttp3.CacheControl;
 import okhttp3.Interceptor;
@@ -35,69 +34,117 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by dengzhouguang on 2017/10/11.
  */
 
-public  class HttpUtil {
-    private static GankSevice mService;
+public class HttpUtil {
+    private static GankSevice mGankSevice;
     private static HttpUtil instance;
     private static MovieService mMovieService;
     private static BaiQiuService mBaiQiuService;
     private static FuLiService mFuliService;
-    public static void newInstance() {
-        if (instance==null)
-            synchronized (HttpUtil.class){
-                if (instance==null)
-                instance = new HttpUtil();
-                OkHttpClient client = new OkHttpClient.Builder()
-                        .cache(new Cache(FileUtil.getHttpCacheDir(App.getInstance()), Constants.HTTP_CACHE_SIZE))
-                        .connectTimeout(Constants.HTTP_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)
-                        .readTimeout(Constants.HTTP_READ_TIMEOUT, TimeUnit.MILLISECONDS)
-                        .build();
-                mService =new Retrofit.Builder()
-                        .client(client)
-                        .baseUrl("http://gank.io/")
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                        .build() .create(GankSevice.class);
+    private static IMobileNewsApi mIMobileNewsService;
+    private static IVideoApi mIVideoService;
 
-                mMovieService=new Retrofit.Builder()
-                        .client(client)
-                        .baseUrl("https://api.douban.com/")
-                        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build().create(MovieService.class);
+    public static void newInstance() {
+        synchronized (Object) {
+            if (instance == null) {
+                synchronized (HttpUtil.class) {
+                    if (instance == null)
+                        instance = new HttpUtil();
+                    OkHttpClient client = new OkHttpClient.Builder()
+                            .cache(new Cache(FileUtil.getHttpCacheDir(App.getInstance()), Constants.HTTP_CACHE_SIZE))
+                            .connectTimeout(Constants.HTTP_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)
+                            .readTimeout(Constants.HTTP_READ_TIMEOUT, TimeUnit.MILLISECONDS)
+                            .build();
+                    mGankSevice = new Retrofit.Builder()
+                            .client(client)
+                            .baseUrl("http://gank.io/")
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                            .build().create(GankSevice.class);
+
+                    mMovieService = new Retrofit.Builder()
+                            .client(client)
+                            .baseUrl("https://api.douban.com/")
+                            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .build().create(MovieService.class);
 
 //                http://www.qiushibaike.com/
-                mBaiQiuService=new Retrofit.Builder()
-                        .client(client)
-                        .baseUrl("http://www.qiushibaike.com/")
-                        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                        .build().create(BaiQiuService.class);
-                mFuliService=new Retrofit.Builder()
-                        .client(client)
-                        .baseUrl("http://gank.io/api/")
-                        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build().create(FuLiService.class);
+                    mBaiQiuService = new Retrofit.Builder()
+                            .client(client)
+                            .baseUrl("http://www.qiushibaike.com/")
+                            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                            .build().create(BaiQiuService.class);
+                    mFuliService = new Retrofit.Builder()
+                            .client(client)
+                            .baseUrl("http://gank.io/api/")
+                            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .build().create(FuLiService.class);
+                    // 指定缓存路径,缓存大小 50Mb
+                    Cache cache = new Cache(new File(App.getInstance().getCacheDir(), "HttpCache"),
+                            1024 * 1024 * 50);
+
+                    // Cookie 持久化
+                    ClearableCookieJar cookieJar =
+                            new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(App.getInstance()));
+
+                    OkHttpClient.Builder builder = new OkHttpClient.Builder()
+                            .cookieJar(cookieJar)
+                            .cache(cache)
+                            .addInterceptor(cacheControlInterceptor)
+                            .connectTimeout(10, TimeUnit.SECONDS)
+                            .readTimeout(15, TimeUnit.SECONDS)
+                            .writeTimeout(15, TimeUnit.SECONDS)
+                            .retryOnConnectionFailure(true);
+                    HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+                    interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+                    builder.addInterceptor(interceptor);
+
+                    mIMobileNewsService = new Retrofit.Builder()
+                            .baseUrl("http://toutiao.com/")
+                            .client(builder.build())
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                            .build()
+                            .create(IMobileNewsApi.class);
+                    mIVideoService = new Retrofit.Builder()
+                            .baseUrl("http://toutiao.com/")
+                            .client(builder.build())
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                            .build()
+                            .create(IVideoApi.class);
+
+                }
             }
-    }
-    public static Observable<GankBean> getGank(String page){
-    return mService.getGankByPage(page);
+        }
     }
 
-    public static Observable<GankBean> search(String type,String searchContent, String page){
-        return  mService.search(type,page,searchContent);
-    }
-
-    public static Observable<GankBean> getGankByDay(String year,String month,String day){
-        return mService.getGankByDay(year, month, day);
-    }
-
-    public static MovieService getDouBanService(){
+    public static MovieService getDouBanService() {
         return mMovieService;
     }
 
-    public static BaiQiuService getBaiQiuService(){ return mBaiQiuService;};
+    public static BaiQiuService getBaiQiuService() {
+        return mBaiQiuService;
+    }
 
-    public static FuLiService getFuliService(){return mFuliService;}
+    public static GankSevice getGankSevice(){
+        return mGankSevice;
+    }
+
+    public static FuLiService getFuliService() {
+        return mFuliService;
+    }
+
+    @NonNull
+    public static IMobileNewsApi getShortVideoService() {
+        return mIMobileNewsService;
+    }
+
+    public static IVideoApi getIVideoService() {
+        return mIVideoService;
+    }
+
     private static final Object Object = new Object();
     /**
      * 缓存机制
@@ -134,40 +181,6 @@ public  class HttpUtil {
             }
         }
     };
-    private volatile static Retrofit retrofit;
 
-    @NonNull
-    public static Retrofit getShortVideoRetrofit() {
-        synchronized (Object) {
-            if (retrofit == null) {
-                // 指定缓存路径,缓存大小 50Mb
-                Cache cache = new Cache(new File(App.getInstance().getCacheDir(), "HttpCache"),
-                        1024 * 1024 * 50);
 
-                // Cookie 持久化
-                ClearableCookieJar cookieJar =
-                        new PersistentCookieJar(new SetCookieCache(), new SharedPrefsCookiePersistor(App.getInstance()));
-
-                OkHttpClient.Builder builder = new OkHttpClient.Builder()
-                        .cookieJar(cookieJar)
-                        .cache(cache)
-                        .addInterceptor(cacheControlInterceptor)
-                        .connectTimeout(10, TimeUnit.SECONDS)
-                        .readTimeout(15, TimeUnit.SECONDS)
-                        .writeTimeout(15, TimeUnit.SECONDS)
-                        .retryOnConnectionFailure(true);
-                HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-                interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-                builder.addInterceptor(interceptor);
-
-                retrofit = new Retrofit.Builder()
-                        .baseUrl(INewsApi.HOST)
-                        .client(builder.build())
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                        .build();
-            }
-            return retrofit;
-        }
-    }
 }

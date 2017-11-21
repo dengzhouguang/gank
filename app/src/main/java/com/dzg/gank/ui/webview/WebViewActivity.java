@@ -18,7 +18,7 @@ import android.widget.ProgressBar;
 
 import com.dzg.gank.R;
 import com.dzg.gank.util.CommonUtils;
-import com.dzg.gank.ui.statusbar.StatusBarUtil;
+import com.dzg.gank.ui.view.statusbar.StatusBarUtil;
 import com.dzg.gank.ui.webview.config.FullscreenHolder;
 import com.dzg.gank.ui.webview.config.IWebPageView;
 import com.dzg.gank.ui.webview.config.ImageClickInterface;

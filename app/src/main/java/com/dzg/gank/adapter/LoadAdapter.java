@@ -12,7 +12,7 @@ import com.bumptech.glide.Glide;
 import com.dzg.gank.App;
 import com.dzg.gank.R;
 import com.dzg.gank.listener.OnDouBanItemClickListener;
-import com.dzg.gank.module.Movie;
+import com.dzg.gank.mvp.model.Movie;
 import com.dzg.gank.util.ACache;
 import com.dzg.gank.util.DensityUtil;
 

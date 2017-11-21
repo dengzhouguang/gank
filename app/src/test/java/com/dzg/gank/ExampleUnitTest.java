@@ -1,25 +1,6 @@
 package com.dzg.gank;
 
-import com.dzg.gank.api.BaiQiuService;
-import com.dzg.gank.module.DianYingBean;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.junit.Test;
-
-import java.io.IOException;
-
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.Observer;
-import io.reactivex.annotations.NonNull;
-import io.reactivex.disposables.Disposable;
-import okhttp3.ResponseBody;
-import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -29,67 +10,78 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 public class ExampleUnitTest {
     @Test
     public void addition_isCorrect() throws Exception {
-                new Retrofit.Builder()
-                        .baseUrl("http://www.qiushibaike.com/")
+       /* OkHttpClient client = new OkHttpClient.Builder()
+                .cookieJar(new CookieJar() {
+                    private final HashMap<HttpUrl, List<Cookie>> cookieStore = new HashMap<>();
+
+                    @Override
+                    public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {
+                        cookieStore.put(url, cookies);
+                    }
+
+                    @Override
+                    public List<Cookie> loadForRequest(HttpUrl url) {
+                        List<Cookie> cookies = cookieStore.get(url);
+                        return cookies != null ? cookies : new ArrayList<Cookie>();
+                    }
+                })
+//                .cache(new Cache(FileUtil.getHttpCacheDir(App.getInstance()), Constants.HTTP_CACHE_SIZE))
+                .addNetworkInterceptor(new Interceptor() {
+                    @Override
+                    public Response intercept(Chain chain) throws IOException {
+                        Request original = chain.request();
+
+                        Request request = original.newBuilder()
+                               .header("Cache-Control", "max-stale=0")
+                                .header("Accept-Encoding", "gzip")
+                                .header("User-Agent","okhttp/3.4.1")
+                                .header("Connection","Keep-Alive")
+                               .header("Cookie", "install_id=17503554218")
+                                .header("Cookie", "qh[360]=1")
+                                .header("Cookie","ttreq=1$73e829ecd18e58fe34843bcda620775922fdaf21")
+                                .method(original.method(), original.body())
+                                .build();
+                        return chain.proceed(request);
+                    }
+                })
+                .connectTimeout(Constants.HTTP_CONNECT_TIMEOUT, TimeUnit.MILLISECONDS)
+                .readTimeout(Constants.HTTP_READ_TIMEOUT, TimeUnit.MILLISECONDS)
+                .build();
+//        http://hotsoon.snssdk.com/hotsoon/feed/?type=video&max_time=1510465185565&count=20&req_from=feed_loadmore&live_sdk_version=280&iid=17503554218&device_id=41117308918&ac=wifi&channel=xiaomi&aid=1112&app_name=live_stream&version_code=280&version_name=2.8.0&device_platform=android&ssmix=a&device_type=MI+5&device_brand=Xiaomi&os_api=24&os_version=7.0&uuid=862155038066584&openudid=3b29e2b0374408b5&manifest_version_code=280&resolution=1080*1920&dpi=480&update_version_code=2802&ts=1510465207&as=a2750d90370baade47&cp=dbb1a959737004efe2
+        new Retrofit.Builder()
+                .client(client)
+                .baseUrl("https://hotsoon.snssdk.com/")
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .build().create(BaiQiuService.class).getData(1 + "")
-                .subscribe(new Observer<ResponseBody>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-                    }
+                .addConverterFactory(GsonConverterFactory.create())
+                .build().create(VideoService.class).getVideoData(String.valueOf((new Date().getTime())/1000)).subscribe(new Observer<ResponseBody>() {
+            @Override
+            public void onSubscribe(Disposable d) {
 
-                    @Override
-                    public void onNext(@NonNull ResponseBody responseBody) {
-                        Document doc = null;
-                        try {
-                            doc = Jsoup.parse(responseBody.string());
-                            /*Elements elements = doc.select("div.article");
-                            for (int i = 0; i < elements.size(); i++) {
-                                if (elements.get(i).select("div.thumb").size()==0){
-                                    continue;
-                                }
-                                Elements el = elements.get(i).select("a.contentHerf");
-                                String txt = el.get(0).text();
-                                System.out.println(i);
-                                System.out.println("1.标题     "+el.text());
-                                String href = el.get(0).attr("href");
-                                System.out.println("2.链接   "+ href);
-                            }*/
+            }
+
+            @Override
+            public void onNext(ResponseBody responseBody) {
+//                Log.e("nihao",responseBody.toString());
+                try {
+                    System.out.println(responseBody.string()+"GGGGGG");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
 
 
+            @Override
+            public void onError(Throwable e) {
+                System.out.println(e.getMessage()+"GGGGGG");
+            }
 
-                           /* Elements elstext = doc.select("div.thumb");*/
-                            Elements els = doc.select("a.contentHerf");
-                            for (int i = 0; i < els.size(); i++) {
-                                System.out.println(i);
-                                Element el = els.get(i);
-                                String txt = el.text();
-                                System.out.println("1.标题     "+el.text());
-                                String href = el.attr("href");
-                                System.out.println("2.链接   "+ href);
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
+            @Override
+            public void onComplete() {
 
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-                    }
-                });
+            }
+        });*/
     }
     @Test
     public void test() throws Exception{
-        Observable<DianYingBean> dianYingBeanObservable = Observable.create(new ObservableOnSubscribe<DianYingBean>() {
-            @Override
-            public void subscribe(ObservableEmitter<DianYingBean> e) throws Exception {
-
-            }
-        });
     }
 }

@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">干货集中营</string>
-    <string name="nav_item_install">干货</string>
+    <string name="nav_item_gank">干货</string>
     <string name="nav_item_movie">电影</string>
     <string name="nav_item_douban">豆瓣</string>
-    <string name="nav_item_settings">设置</string>
+    <string name="nav_item_video">短视频</string>
     <string name="nav_item_support">支持</string>
     <string name="nav_item_baiqiu">糗事百科</string>
     <string name="nav_item_about">关于</string>

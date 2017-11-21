@@ -14,47 +14,41 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.bumptech.glide.Glide;
+import com.dzg.gank.App;
 import com.dzg.gank.R;
 import com.dzg.gank.adapter.RecyclerViewAdapter;
+import com.dzg.gank.injector.component.ApplicationComponent;
+import com.dzg.gank.injector.component.BaiQiuComponent;
+import com.dzg.gank.injector.component.DaggerBaiQiuComponent;
+import com.dzg.gank.injector.module.BaiQiuModule;
+import com.dzg.gank.injector.module.FragmentModule;
 import com.dzg.gank.listener.ItemTouchHelperCallback;
-import com.dzg.gank.util.HttpUtil;
+import com.dzg.gank.mvp.contract.BaiQiuContract;
 import com.dzg.gank.util.ToastUtil;
-import com.trello.rxlifecycle2.android.FragmentEvent;
 import com.trello.rxlifecycle2.components.support.RxFragment;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.annotations.NonNull;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Function;
-import io.reactivex.schedulers.Schedulers;
-import okhttp3.ResponseBody;
 
 /**
  * Created by dengzhouguang on 2017/10/23.
  */
 
-public class BaiQiuFragment extends RxFragment {
+public class BaiQiuFragment extends RxFragment implements BaiQiuContract.View{
     @BindView(R.id.recycler_view_recycler_view)
     RecyclerView mRecyclerView;
     @BindView(R.id.swipe_refresh_layout_recycler_view)
     SwipeRefreshLayout swipeRefreshLayout;
-
+    @Inject
+    BaiQiuContract.Presenter mPresenter;
     private boolean loading;
     private RecyclerViewAdapter adapter;
     private List<String> mData;
-    private int color = 0;
     private int mPage = 1;
     private boolean mIsNetWork=true;
     private static BaiQiuFragment instance=null;
@@ -71,70 +65,21 @@ public class BaiQiuFragment extends RxFragment {
         View view = inflater.inflate(R.layout.fragment_baiqiu, container, false);
         ButterKnife.bind(this, view);
         initView();
-        initData();
+        injectDependences();
+        mPresenter.attachView(this);
+        mPresenter.initData();
         return view;
     }
+    private void injectDependences() {
+        ApplicationComponent applicationComponent = App.getInstance().getApplicationComponent();
 
-    private void initData() {
-        HttpUtil.getBaiQiuService().getData(mPage + "")
-                .map(new Function<ResponseBody, List<String>>() {
-                    @Override
-                    public List<String> apply(@NonNull ResponseBody responseBody) throws Exception {
-                        List<String> list = new ArrayList<String>();
-                        Document doc = null;
-                        try {
-                            doc = Jsoup.parse(responseBody.string());
-                            Elements els = doc.select("a.contentHerf");
-                            for (int i = 0; i < els.size(); i++) {
-                                Element el = els.get(i);
-                                String txt = el.text();
-                                String url = el.attr("href");
-                                if (txt.endsWith("查看全文")) {
-                                    Document document = Jsoup.connect("https://www.qiushibaike.com" + url).get();
-                                    Elements elements = document.select("div.content");
-                                    list.add(elements.text());
-                                } else {
-                                    list.add(txt);
-                                }
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        return list;
-                    }
-                })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(this.<List<String>>bindUntilEvent(FragmentEvent.STOP))
-                .subscribe(new Observer<List<String>>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(@NonNull List<String> strings) {
-                        adapter.removeFooter();
-                        adapter.setItems(strings);
-                        swipeRefreshLayout.setRefreshing(false);
-                        mIsNetWork=true;
-                    }
-
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        ToastUtil.showToast("网络不可用，请检查网络情况！");
-                        adapter.removeFooter();
-                        mIsNetWork=false;
-                        swipeRefreshLayout.setRefreshing(false);
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        mPage++;
-                    }
-                });
+       BaiQiuComponent component= DaggerBaiQiuComponent.builder()
+               .applicationComponent(applicationComponent)
+               .baiQiuModule(new BaiQiuModule())
+               .fragmentModule(new FragmentModule(this))
+               .build();
+       component.inject(this);
     }
-
     private void initView() {
         mData = new ArrayList<>();
         if (getScreenWidthDp() >= 1200) {
@@ -160,7 +105,7 @@ public class BaiQiuFragment extends RxFragment {
             @Override
             public void onRefresh() {
                 mPage=1;
-                initData();
+                mPresenter.initData();
             }
         });
 
@@ -182,7 +127,7 @@ public class BaiQiuFragment extends RxFragment {
                             if (!loading && mPage != 1 && linearLayoutManager.getItemCount() == (linearLayoutManager.findLastVisibleItemPosition() + 1)) {
                                 adapter.addFooter();
                                 loading=true;
-                                loadData();
+                                mPresenter.loadData(mPage+"");
                             }
                         }
                     }
@@ -200,7 +145,7 @@ public class BaiQiuFragment extends RxFragment {
             if (!loading && adapter.getItemCount()>1 && linearLayoutManager.getItemCount() == (linearLayoutManager.findLastVisibleItemPosition() + 1)) {
                 adapter.addFooter();
                 loading = true;
-                loadData();
+                mPresenter.loadData(mPage+"");
                /* Snackbar.make(mRecyclerView, getString(R.string.no_more_data), Snackbar.LENGTH_SHORT).setCallback(new Snackbar.Callback() {
                     @Override
                     public void onDismissed(Snackbar transientBottomBar, int event) {
@@ -215,68 +160,6 @@ public class BaiQiuFragment extends RxFragment {
     private int getScreenWidthDp() {
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
         return (int) (displayMetrics.widthPixels / displayMetrics.density);
-    }
-
-    private void loadData() {
-        mData = new ArrayList<>();
-        HttpUtil.getBaiQiuService().getData(mPage + "")
-                .map(new Function<ResponseBody, List<String>>() {
-                    @Override
-                    public List<String> apply(@NonNull ResponseBody responseBody) throws Exception {
-                        List<String> list = new ArrayList<String>();
-                        Document doc = null;
-                        try {
-                            doc = Jsoup.parse(responseBody.string());
-                            Elements els = doc.select("a.contentHerf");
-                            for (int i = 0; i < els.size(); i++) {
-                                Element el = els.get(i);
-                                String txt = el.text();
-                                String url = el.attr("href");
-                                if (txt.endsWith("查看全文")) {
-                                    Document document = Jsoup.connect("https://www.qiushibaike.com" + url).get();
-                                    Elements elements = document.select("div.content");
-                                    list.add(elements.text());
-                                } else {
-                                    list.add(txt);
-                                }
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        return list;
-                    }
-                })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(this.<List<String>>bindUntilEvent(FragmentEvent.STOP))
-                .subscribe(new Observer<List<String>>() {
-                    @Override
-                    public void onSubscribe(@NonNull Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(@NonNull List<String> strings) {
-                        mIsNetWork=true;
-                        adapter.removeFooter();
-                        adapter.addItems(strings);
-                    }
-
-                    @Override
-                    public void onError(@NonNull Throwable e) {
-                        ToastUtil.showToast("网络不可用，请检查网络情况！");
-                        mIsNetWork=false;
-                        adapter.removeFooter();
-                        swipeRefreshLayout.setRefreshing(false);
-                        loading=false;
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        mPage++;
-                        loading=false;
-                    }
-                });
     }
     @Override
     public void onResume() {
@@ -300,4 +183,46 @@ public class BaiQiuFragment extends RxFragment {
         super.onDestroy();
     }
 
+    @Override
+    public void showData(List<String> list) {
+        adapter.removeFooter();
+        adapter.setItems(list);
+        swipeRefreshLayout.setRefreshing(false);
+        mIsNetWork=true;
+    }
+
+    @Override
+    public void showError() {
+        ToastUtil.showToast("网络不可用，请检查网络情况！");
+        adapter.removeFooter();
+        mIsNetWork=false;
+        swipeRefreshLayout.setRefreshing(false);
+    }
+
+    @Override
+    public void complete() {
+        mPage++;
+    }
+
+    @Override
+    public void showLoadData(List<String> list) {
+        mIsNetWork=true;
+        adapter.removeFooter();
+        adapter.addItems(list);
+    }
+
+    @Override
+    public void showLoadError() {
+        ToastUtil.showToast("网络不可用，请检查网络情况！");
+        mIsNetWork=false;
+        adapter.removeFooter();
+        swipeRefreshLayout.setRefreshing(false);
+        loading=false;
+    }
+
+    @Override
+    public void loadComplete() {
+        mPage++;
+        loading=false;
+    }
 }

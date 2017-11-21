@@ -19,7 +19,7 @@ import android.widget.TextView;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.dzg.gank.App;
 import com.dzg.gank.R;
-import com.dzg.gank.ui.statusbar.StatusBarUtil;
+import com.dzg.gank.ui.view.statusbar.StatusBarUtil;
 import com.dzg.gank.ui.webview.WebViewActivity;
 import com.dzg.gank.util.CommonUtils;
 

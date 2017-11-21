@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.dzg.gank.R;
-import com.dzg.gank.module.GankBean;
+import com.dzg.gank.mvp.model.GankBean;
 import com.dzg.gank.ui.webview.WebViewActivity;
 import com.dzg.gank.util.CommonUtils;
 
