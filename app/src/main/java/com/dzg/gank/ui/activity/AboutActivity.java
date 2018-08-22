@@ -1,5 +1,6 @@
 package com.dzg.gank.ui.activity;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -13,7 +14,9 @@ import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -31,14 +34,12 @@ public class AboutActivity extends AppCompatActivity {
         setContentView(R.layout.activity_about);
         Toolbar toolbar =  findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 finish();
             }
         });
-
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
             ab.setTitle(R.string.nav_item_about);
@@ -107,6 +108,8 @@ public class AboutActivity extends AppCompatActivity {
                     startActivity(intent);
                 }
             });
+
+
 
             if (translator.isEmpty()) {
                 translatorsView.setVisibility(View.GONE);

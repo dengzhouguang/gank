@@ -299,7 +299,6 @@ public class ViewBigImageActivity extends FragmentActivity implements OnPageChan
 
                         @Override
                         public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                            Toast.makeText(getApplicationContext(), "图片加载完成", Toast.LENGTH_SHORT).show();
                             spinner.setVisibility(View.GONE);
                             int height = zoom_image_view.getHeight();
 

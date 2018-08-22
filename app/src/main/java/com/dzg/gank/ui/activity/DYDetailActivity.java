@@ -41,32 +41,32 @@ public class DYDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dianying_detail);
         ButterKnife.bind(this);
-        final DianYingBean bean= (DianYingBean) getIntent().getExtras().getSerializable("bean");
+        final DianYingBean bean = (DianYingBean) getIntent().getExtras().getSerializable("bean");
         mTitleTv.setText(bean.getTitle());
         Glide.with(this).load(bean.getUrl()).into(mMovieIv);
-        StringBuffer sb=new StringBuffer();
-        if (bean.getDirector()!=null)
-        sb.append(bean.getDirector()+"\r\n\r\n");
-        if (bean.getTitle()!=null)
-        sb.append(bean.getTitle()+"\r\n\n");
-        if (bean.getCountry()!=null)
-        sb.append(bean.getCountry()+"\r\n\n");
-        if (bean.getTime()!=null)
-        sb.append(bean.getTime()+"\r\n\n");
-        if (bean.getLanguage()!=null)
-        sb.append(bean.getLanguage()+"\r\n\n");
-        if (bean.getScore()!=null)
-        sb.append(bean.getScore()+"\r\n\n");
+        StringBuffer sb = new StringBuffer();
+        if (bean.getDirector() != null)
+            sb.append(bean.getDirector() + "\r\n\r\n");
+        if (bean.getTitle() != null)
+            sb.append(bean.getTitle() + "\r\n\n");
+        if (bean.getCountry() != null)
+            sb.append(bean.getCountry() + "\r\n\n");
+        if (bean.getTime() != null)
+            sb.append(bean.getTime() + "\r\n\n");
+        if (bean.getLanguage() != null)
+            sb.append(bean.getLanguage() + "\r\n\n");
+        if (bean.getScore() != null)
+            sb.append(bean.getScore() + "\r\n\n");
         mRightContentTv.setText(sb.toString());
         mDownloadTv.setText(bean.getDownUrl());
-       mSummaryTv.setText(bean.getStory().replace("简介","").trim());
-        mTranslationTv.setText(bean.getTranslation().replace("译名","").trim());
-        mDirectionActorsTv.setText(bean.getDirector().replace("导演　","导演\r\n")+"\r\n"+bean.getActors());
+        mSummaryTv.setText(bean.getStory().replace("简介", "").trim());
+        mTranslationTv.setText(bean.getTranslation().replace("译名", "").trim());
+        mDirectionActorsTv.setText(bean.getDirector().replace("导演　", "导演\r\n") + "\r\n" + bean.getActors());
         mDownloadTv.setTextIsSelectable(true);
-        mDownloadTv.setOnClickListener(new View.OnClickListener(){
+        mDownloadTv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(Intent.ACTION_VIEW);
+                Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setData(Uri.parse(bean.getDownUrl()));
                 startActivity(intent);
             }

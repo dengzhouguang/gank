@@ -18,4 +18,5 @@ public class StatusBarView extends View {
     public StatusBarView(Context context) {
         super(context);
     }
+
 }

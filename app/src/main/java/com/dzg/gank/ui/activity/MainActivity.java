@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     DrawerLayout mDrawer;
     @BindView(R.id.toolbar_main)
     Toolbar mToolbar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         item.setChecked(true);
         switch (item.getItemId()) {
             case R.id.nav_item_gank:
-                navFragment=MainFragment.getInstance();
+                navFragment = MainFragment.getInstance();
                 setTitle(R.string.app_name);
                 break;
             case R.id.nav_item_movie:
@@ -79,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
             case R.id.nav_item_video:
                 setTitle("短视频");
-                navFragment=VideoFragment.getInstance();
+                navFragment = VideoFragment.getInstance();
                 break;
             case R.id.nav_item_support:
                 ToastUtil.showToast("支持");
@@ -92,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (navFragment != null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             transaction.setCustomAnimations(R.animator.fade_in, R.animator.fade_out);
-             transaction.replace(R.id.content_frame, navFragment).commit();
+            transaction.replace(R.id.content_frame, navFragment).commit();
         }
         if (mDrawer.isDrawerOpen(GravityCompat.START)) {
             mDrawer.closeDrawer(GravityCompat.START);
@@ -106,6 +107,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mDrawer.closeDrawer(GravityCompat.START);
         } else {
             if (NiceVideoPlayerManager.instance().onBackPressd()) return;
+            if (NiceVideoPlayerManager.instance().getCurrentNiceVideoPlayer() != null && NiceVideoPlayerManager.instance().getCurrentNiceVideoPlayer().isPlaying()) {
+                NiceVideoPlayerManager.instance().getCurrentNiceVideoPlayer().pause();
+                return;
+            }
             super.onBackPressed();
         }
     }

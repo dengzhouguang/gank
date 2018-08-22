@@ -70,7 +70,6 @@ public class MovieFragmen extends RxFragment implements MovieContract.View {
     XRecyclerView mRecyclerView;
     @Inject
     MovieContract.Presenter mPresenter;
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
@@ -193,7 +192,7 @@ public class MovieFragmen extends RxFragment implements MovieContract.View {
         Elements div = document.select("div.co_content8");
         Elements img = div.select("img[src]");
         String imgURL = img.get(0).attr("src");
-        String sumURL = img.get(1).attr("src");
+//        String sumURL = img.get(1).attr("src");
         String downURL = div.select("td").first().text();
         Elements content = div.select("span");
         content.select("center").remove();
@@ -232,12 +231,12 @@ public class MovieFragmen extends RxFragment implements MovieContract.View {
             bean.setDirector(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
         if ((pre = text.indexOf("◎简　　介")) > 0)
             bean.setStory(text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length()).replace("　　", "").replace("◎", ""));
-        if (text.indexOf("]") > 0)
+        /*if (text.indexOf("]") > 0)
             bean.setTitle(text.substring(0, text.indexOf("]")));
-        else if (bean.getTranslation() != null)
-            bean.setTitle(bean.getTranslation().replace("◎译名　", ""));
+        else */if (bean.getTranslation() != null)
+            bean.setTitle(bean.getTranslation().replace("译名　", ""));
         else if (bean.getName() != null)
-            bean.setTitle(bean.getName().replace("◎片名　", ""));
+            bean.setTitle(bean.getName().replace("片名　", ""));
         String actor = null;
         if ((pre = text.indexOf("◎主　　演")) > 0) {
             actor = text.substring(pre, (end = text.indexOf("◎", pre + 1)) > 0 ? end : text.length());
